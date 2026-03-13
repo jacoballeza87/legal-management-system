@@ -1,0 +1,6 @@
+aws_region   = "us-east-1"
+environment  = "prod"
+project_name = "legal-case-system"
+db_username  = "ralrogondb"
+db_password  = "Legalsys26"
+domain_name  = "ralrogolegal.com"

@@ -1,0 +1,35 @@
+@import '../../../../assets/styles/auth.scss';
+
+// currentYear helper
+:host { display: block; }
+
+// Stagger animation for form elements
+.form-group {
+  animation: slideUp 0.4s var(--ease-out) both;
+
+  &:nth-child(1) { animation-delay: 0.05s; }
+  &:nth-child(2) { animation-delay: 0.10s; }
+  &:nth-child(3) { animation-delay: 0.15s; }
+}
+
+.oauth-buttons { animation: slideUp 0.4s var(--ease-out) both; }
+.form-extras   { animation: slideUp 0.4s 0.2s var(--ease-out) both; }
+
+// Brand headline animation
+.brand-headline {
+  animation: fadeInLeft 0.8s 0.3s var(--ease-out) both;
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.brand-feature {
+  animation: fadeInLeft 0.6s var(--ease-out) both;
+
+  &:nth-child(1) { animation-delay: 0.5s; }
+  &:nth-child(2) { animation-delay: 0.65s; }
+  &:nth-child(3) { animation-delay: 0.80s; }
+  &:nth-child(4) { animation-delay: 0.95s; }
+}

@@ -1,0 +1,58 @@
+spring:
+  application:
+    name: document-service
+  datasource:
+    url: jdbc:mysql://legal-case-system-db.cg5ygkuo00d4.us-east-1.rds.amazonaws.com:3306/legal_management_db?useSSL=true&requireSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 100MB
+
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
+    consumer:
+      group-id: document-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+server:
+  port: 8085
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@eureka-server:8761/eureka
+  instance:
+    prefer-ip-address: true
+
+aws:
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+    region: us-east-1
+
+files:
+  allowed-types: pdf,doc,docx,xls,xlsx,jpg,jpeg,png,zip
+  max-per-upload: 10
+
+logging:
+  level:
+    com.legal.document: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET}
+  issuer: legal-management-system

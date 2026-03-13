@@ -1,0 +1,173 @@
+# ============================================
+# CONFIG SERVER
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+  namespace: legal-system-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: config-server
+  template:
+    metadata:
+      labels:
+        app: config-server
+    spec:
+      containers:
+        - name: config-server
+          image: ${ECR_BASE}/legal/config-server:latest
+          ports:
+            - containerPort: 8888
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "git"
+            - name: CONFIG_SERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_USER
+            - name: CONFIG_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_PASSWORD
+            - name: GIT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: GIT_USERNAME
+            - name: GIT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: GIT_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8888
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8888
+            initialDelaySeconds: 120
+            periodSeconds: 60
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-server
+  namespace: legal-system-prod
+spec:
+  selector:
+    app: config-server
+  ports:
+    - port: 8888
+      targetPort: 8888
+  type: ClusterIP
+---
+# ============================================
+# EUREKA SERVER
+# — Espera a que config-server esté listo
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eureka-server
+  namespace: legal-system-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eureka-server
+  template:
+    metadata:
+      labels:
+        app: eureka-server
+    spec:
+      # -------------------------------------------------
+      # Init container: no arranca hasta que config-server
+      # responda 200 en /actuator/health
+      # -------------------------------------------------
+      initContainers:
+        - name: wait-for-config
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              echo "Esperando config-server..."
+              until curl -sf http://config-server:8888/actuator/health; do
+                echo "config-server no listo, reintentando en 5s..."
+                sleep 5
+              done
+              echo "config-server listo!"
+      containers:
+        - name: eureka-server
+          image: ${ECR_BASE}/legal/eureka-server:latest
+          ports:
+            - containerPort: 8761
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: CONFIG_SERVER_URL
+              value: "http://config-server:8888"
+            - name: EUREKA_HOST
+              value: "eureka-server"
+            - name: EUREKA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_USER
+            - name: EUREKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+            initialDelaySeconds: 90
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8761
+            initialDelaySeconds: 180
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-server
+  namespace: legal-system-prod
+spec:
+  selector:
+    app: eureka-server
+  ports:
+    - port: 8761
+      targetPort: 8761
+  type: ClusterIP

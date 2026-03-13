@@ -1,0 +1,348 @@
+<div class="app-shell">
+
+  <!-- ══════════════════════════════════════════════
+       SIDEBAR
+  ══════════════════════════════════════════════ -->
+  <aside class="sidebar" [class.collapsed]="sidebarCollapsed">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <div class="logo-icon">⚖️</div>
+        <span class="logo-text">LegalSys</span>
+      </div>
+      <button class="sidebar-toggle" (click)="sidebarCollapsed = !sidebarCollapsed">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+
+      <a class="nav-item active" routerLink="/dashboard">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+        </svg>
+        <span class="nav-label">Dashboard</span>
+      </a>
+
+      <a class="nav-item" routerLink="/cases">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0"/>
+        </svg>
+        <span class="nav-label">Casos</span>
+        <span class="nav-badge" *ngIf="(stats$ | async)?.byStatus?.['OPEN'] as open">{{ open }}</span>
+      </a>
+
+      <a class="nav-item" routerLink="/documents">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+        </svg>
+        <span class="nav-label">Documentos</span>
+      </a>
+
+      <div class="nav-section-label" *ngIf="authService.hasAnyRole('SUPER_ADMIN','ADMIN')">Administración</div>
+
+      <a class="nav-item" routerLink="/users" *ngIf="authService.hasAnyRole('SUPER_ADMIN','ADMIN')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>
+        </svg>
+        <span class="nav-label">Usuarios</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-mini">
+        <div class="user-mini-avatar">
+          {{ currentUser?.name?.charAt(0) | uppercase }}
+        </div>
+        <div class="user-mini-info">
+          <div class="user-mini-name">{{ currentUser?.name }}</div>
+          <div class="user-mini-role">{{ currentUser?.role }}</div>
+        </div>
+        <button class="nav-item-icon-btn" (click)="onLogout()" title="Cerrar sesión">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════════════════════════════
+       MAIN CONTENT
+  ══════════════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- ── Top Bar ──────────────────────────────── -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-greeting">
+          <span class="greeting-text">{{ greeting }},</span>
+          <span class="greeting-name">{{ currentUser?.name?.split(' ')[0] }}</span>
+        </div>
+        <div class="topbar-date">{{ currentDate | date:'EEEE, d MMMM yyyy':'':'es' }}</div>
+      </div>
+
+      <div class="topbar-right">
+        <!-- Search -->
+        <div class="topbar-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+          </svg>
+          <input type="text" placeholder="Buscar casos, clientes..." class="search-input"/>
+          <kbd class="search-kbd">⌘K</kbd>
+        </div>
+
+        <!-- Refresh -->
+        <button class="icon-btn" (click)="refresh()" title="Actualizar" [class.spinning]="loading$ | async">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/>
+          </svg>
+        </button>
+
+        <!-- Notifications -->
+        <div class="notification-wrapper">
+          <button class="icon-btn" (click)="notifOpen = !notifOpen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+            </svg>
+            <span class="notif-badge" *ngIf="(notifications$ | async)?.length">
+              {{ (notifications$ | async)?.length }}
+            </span>
+          </button>
+
+          <!-- Notifications dropdown -->
+          <div class="notif-dropdown" *ngIf="notifOpen">
+            <div class="notif-header">
+              <span>Notificaciones</span>
+              <button class="link-btn" (click)="notifOpen = false">Ver todas</button>
+            </div>
+            <div class="notif-list">
+              <div class="notif-empty" *ngIf="!(notifications$ | async)?.length">
+                Sin notificaciones nuevas
+              </div>
+              <div class="notif-item" *ngFor="let n of (notifications$ | async)">
+                <div class="notif-dot" [class.unread]="n.status !== 'READ'"></div>
+                <div class="notif-content">
+                  <div class="notif-title">{{ n.title }}</div>
+                  <div class="notif-time">{{ n.createdAt | date:'shortTime' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Avatar -->
+        <div class="topbar-avatar">
+          {{ currentUser?.name?.charAt(0) | uppercase }}
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Page Content ─────────────────────────── -->
+    <div class="page-content">
+
+      <!-- Error state -->
+      <div class="alert-error-bar" *ngIf="error$ | async as err">
+        ⚠️ {{ err }}
+        <button class="link-btn" (click)="refresh()">Reintentar</button>
+      </div>
+
+      <!-- ─ KPI Cards ─────────────────────────────── -->
+      <section class="kpi-grid">
+
+        <div class="kpi-card kpi-total" *ngIf="stats$ | async as s">
+          <div class="kpi-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value counter" [attr.data-target]="s.total">{{ s.total }}</div>
+            <div class="kpi-label">Total de Casos</div>
+          </div>
+          <div class="kpi-trend up">↑ activos</div>
+        </div>
+
+        <div class="kpi-card kpi-open" *ngIf="stats$ | async as s">
+          <div class="kpi-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value">{{ (s.byStatus?.['OPEN'] || 0) + (s.byStatus?.['IN_PROGRESS'] || 0) }}</div>
+            <div class="kpi-label">Casos Activos</div>
+          </div>
+          <div class="kpi-trend neutral">En progreso</div>
+        </div>
+
+        <div class="kpi-card kpi-overdue" *ngIf="stats$ | async as s">
+          <div class="kpi-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value kpi-danger">{{ s.overdue }}</div>
+            <div class="kpi-label">Vencidos</div>
+          </div>
+          <div class="kpi-trend down" *ngIf="s.overdue > 0">¡Requieren atención!</div>
+          <div class="kpi-trend up" *ngIf="s.overdue === 0">Al día ✓</div>
+        </div>
+
+        <div class="kpi-card kpi-soon" *ngIf="stats$ | async as s">
+          <div class="kpi-icon-wrap">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"/>
+            </svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-value kpi-warning">{{ s.dueSoon }}</div>
+            <div class="kpi-label">Vencen Pronto</div>
+          </div>
+          <div class="kpi-trend neutral">Próximos 7 días</div>
+        </div>
+
+      </section>
+
+      <!-- Skeleton si loading -->
+      <section class="kpi-grid" *ngIf="loading$ | async">
+        <div class="kpi-skeleton" *ngFor="let i of [1,2,3,4]"></div>
+      </section>
+
+      <!-- ─ Main Grid ──────────────────────────────── -->
+      <div class="dashboard-grid">
+
+        <!-- ── Status Chart ──────────────────────── -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h3 class="card-title">Casos por Estado</h3>
+            <a routerLink="/cases" class="link-btn">Ver todos →</a>
+          </div>
+          <div class="status-chart" *ngIf="stats$ | async as s">
+            <div class="donut-wrapper">
+              <svg class="donut" viewBox="0 0 120 120">
+                <ng-container *ngFor="let seg of buildDonut(s.byStatus); trackBy: trackById">
+                  <circle
+                    class="donut-segment"
+                    cx="60" cy="60" r="45"
+                    fill="none"
+                    [attr.stroke]="seg.color"
+                    stroke-width="18"
+                    [attr.stroke-dasharray]="seg.dash"
+                    [attr.stroke-dashoffset]="seg.offset"
+                    [attr.transform]="seg.rotate"
+                  />
+                </ng-container>
+                <text x="60" y="56" class="donut-center-value" text-anchor="middle">{{ s.total }}</text>
+                <text x="60" y="68" class="donut-center-label" text-anchor="middle">casos</text>
+              </svg>
+            </div>
+            <div class="status-legend">
+              <div class="legend-item" *ngFor="let item of getLegend(s.byStatus)">
+                <span class="legend-dot" [style.background]="item.color"></span>
+                <span class="legend-label">{{ item.label }}</span>
+                <span class="legend-value">{{ item.value }}</span>
+                <span class="legend-pct">{{ item.pct }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Priority Breakdown ────────────────── -->
+        <div class="card priority-card">
+          <div class="card-header">
+            <h3 class="card-title">Por Prioridad</h3>
+          </div>
+          <div class="priority-bars" *ngIf="stats$ | async as s">
+            <div class="priority-bar-item" *ngFor="let p of getPriorityBars(s.byPriority)">
+              <div class="priority-bar-top">
+                <span class="priority-name">
+                  <span class="priority-dot" [style.background]="p.color"></span>
+                  {{ p.label }}
+                </span>
+                <span class="priority-count">{{ p.value }}</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill"
+                     [style.width]="p.pct + '%'"
+                     [style.background]="p.color"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Recent Cases ──────────────────────── -->
+        <div class="card cases-card">
+          <div class="card-header">
+            <h3 class="card-title">Casos Recientes</h3>
+            <a routerLink="/cases" class="link-btn">Ver todos →</a>
+          </div>
+          <div class="cases-loading" *ngIf="loading$ | async">
+            <div class="skeleton-row" *ngFor="let i of [1,2,3,4]"></div>
+          </div>
+          <div class="cases-table" *ngIf="!(loading$ | async)">
+            <div class="case-row" *ngFor="let c of (recentCases$ | async); trackBy: trackById"
+                 [routerLink]="['/cases', c.id]">
+              <div class="case-number">{{ c.caseNumber }}</div>
+              <div class="case-info">
+                <div class="case-title">{{ c.title }}</div>
+                <div class="case-client">{{ c.clientName }}</div>
+              </div>
+              <div class="case-meta">
+                <span class="status-pill" [style.background]="getStatusColor(c.status) + '22'"
+                      [style.color]="getStatusColor(c.status)"
+                      [style.border]="'1px solid ' + getStatusColor(c.status) + '44'">
+                  {{ getStatusLabel(c.status) }}
+                </span>
+                <span class="priority-badge" [style.color]="getPriorityColor(c.priority)">
+                  {{ getPriorityLabel(c.priority) }}
+                </span>
+              </div>
+              <div class="case-date">{{ c.updatedAt | date:'d MMM':'':'es' }}</div>
+            </div>
+            <div class="empty-state" *ngIf="!(recentCases$ | async)?.length && !(loading$ | async)">
+              <div class="empty-icon">📁</div>
+              <p>No hay casos aún</p>
+              <a routerLink="/cases/new" class="btn-create">Crear primer caso</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Activity Feed ─────────────────────── -->
+        <div class="card activity-card">
+          <div class="card-header">
+            <h3 class="card-title">Actividad Reciente</h3>
+          </div>
+          <div class="activity-feed">
+            <div class="activity-item" *ngFor="let item of (activity$ | async); trackBy: trackById">
+              <div class="activity-icon-wrap">
+                <span class="activity-icon">{{ getActivityIcon(item.type) }}</span>
+              </div>
+              <div class="activity-body">
+                <div class="activity-desc">{{ item.description }}</div>
+                <div class="activity-meta">
+                  <span class="activity-case">{{ item.caseNumber }}</span>
+                  <span class="activity-sep">·</span>
+                  <span class="activity-user">{{ item.userName }}</span>
+                  <span class="activity-sep">·</span>
+                  <span class="activity-time">{{ item.occurredAt | date:'d MMM, H:mm':'':'es' }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="empty-state" *ngIf="!(activity$ | async)?.length">
+              <p style="color: var(--text-muted); font-size: .85rem; text-align: center; padding: 1.5rem">
+                Sin actividad reciente
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /dashboard-grid -->
+
+    </div><!-- /page-content -->
+  </main>
+
+</div><!-- /app-shell -->

@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: auth-service
+  datasource:
+    url: jdbc:mysql://legal-case-system-db.cg5ygkuo00d4.us-east-1.rds.amazonaws.com:3306/legal_management_db?useSSL=true&requireSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    properties:
+      hibernate:
+        format_sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: email, profile
+          github:
+            client-id: ${GH_CLIENT_ID}
+            client-secret: ${GH_CLIENT_SECRET}
+            scope: read:user, user:email
+jwt:
+  secret: ${JWT_SECRET}
+  issuer: legal-management-system
+  expiration: 86400000
+  refresh-expiration: 604800000
+server:
+  port: 8081
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@eureka-server:8761/eureka
+  instance:
+    prefer-ip-address: true
+logging:
+  level:
+    com.legal.auth: DEBUG
+    org.springframework.security: DEBUG

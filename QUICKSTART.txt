@@ -1,0 +1,362 @@
+# 🚀 Guía de Inicio Rápido
+
+Esta guía te ayudará a tener el sistema funcionando localmente en menos de 30 minutos.
+
+## ⚡ Inicio Rápido (Desarrollo Local)
+
+### Prerequisitos Mínimos
+
+- Docker Desktop instalado y corriendo
+- Java 17+ instalado
+- Node.js 18+ instalado
+- Maven 3.8+ instalado
+
+### Paso 1: Ejecutar Script de Setup
+
+```bash
+# Dar permisos de ejecución
+chmod +x scripts/setup.sh
+
+# Ejecutar setup
+./scripts/setup.sh
+```
+
+Este script:
+- ✅ Verificará todas las herramientas necesarias
+- ✅ Creará la estructura de directorios
+- ✅ Generará archivo .env con valores por defecto
+- ✅ Instalará dependencias del frontend
+- ✅ Compilará el backend
+- ✅ Iniciará servicios de infraestructura con Docker
+
+### Paso 2: Configurar Variables de Entorno
+
+Edita el archivo `.env` que se creó:
+
+```bash
+nano .env
+```
+
+**Mínimo requerido para desarrollo local:**
+
+```env
+# Dejar estos valores por defecto para desarrollo local
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=legal_management_db
+DB_USER=legal_app
+DB_PASSWORD=legal_password
+
+# CAMBIAR ESTE - Genera uno seguro
+JWT_SECRET=tu_secreto_jwt_muy_seguro_aqui
+
+# Para desarrollo local, estos pueden quedar vacíos
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+```
+
+### Paso 3: Iniciar Servicios de Infraestructura
+
+```bash
+# Iniciar MySQL, Redis, Kafka
+docker-compose up -d mysql redis zookeeper kafka
+
+# Esperar a que estén listos (30 segundos aprox)
+sleep 30
+
+# Verificar que estén corriendo
+docker-compose ps
+```
+
+### Paso 4: Configurar Base de Datos
+
+```bash
+# Ejecutar schema
+docker exec -i legal-mysql mysql -uroot -proot_password < database/schema.sql
+
+# Verificar
+docker exec -it legal-mysql mysql -uroot -proot_password -e "USE legal_management_db; SHOW TABLES;"
+```
+
+### Paso 5: Crear Topics de Kafka
+
+```bash
+# Crear topics necesarios
+docker exec legal-kafka kafka-topics --create --topic case-events --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+docker exec legal-kafka kafka-topics --create --topic notification-events --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+docker exec legal-kafka kafka-topics --create --topic document-events --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+docker exec legal-kafka kafka-topics --create --topic audit-events --bootstrap-server localhost:9092 --partitions 3 --replication-factor 1
+
+# Verificar
+docker exec legal-kafka kafka-topics --list --bootstrap-server localhost:9092
+```
+
+### Paso 6: Iniciar Microservicios Backend
+
+**IMPORTANTE**: Los servicios deben iniciarse en este orden específico.
+
+#### Terminal 1: Config Server
+```bash
+cd backend/config-server
+mvn spring-boot:run
+```
+Espera hasta ver: "Started ConfigServerApplication"
+
+#### Terminal 2: Eureka Server
+```bash
+cd backend/eureka-server
+mvn spring-boot:run
+```
+Espera hasta ver: "Started EurekaServerApplication"
+
+#### Terminal 3: Auth Service
+```bash
+cd backend/auth-service
+mvn spring-boot:run
+```
+
+#### Terminal 4: User Service
+```bash
+cd backend/user-service
+mvn spring-boot:run
+```
+
+#### Terminal 5: Case Service
+```bash
+cd backend/case-service
+mvn spring-boot:run
+```
+
+#### Terminal 6: Notification Service
+```bash
+cd backend/notification-service
+mvn spring-boot:run
+```
+
+#### Terminal 7: Document Service
+```bash
+cd backend/document-service
+mvn spring-boot:run
+```
+
+#### Terminal 8: API Gateway
+```bash
+cd backend/api-gateway
+mvn spring-boot:run
+```
+
+### Paso 7: Iniciar Frontend
+
+En una nueva terminal:
+
+```bash
+cd frontend/legal-app
+
+# Instalar dependencias (si no se hizo antes)
+npm install
+
+# Iniciar servidor de desarrollo
+ng serve
+```
+
+### Paso 8: Verificar que Todo Funciona
+
+1. **Eureka Dashboard**: http://eureka-server:8761
+   - Deberías ver todos los microservicios registrados
+
+2. **API Gateway**: http://localhost:8080/actuator/health
+   - Debería retornar: `{"status":"UP"}`
+
+3. **Frontend**: http://localhost:4200
+   - Debería mostrar la pantalla de login
+
+4. **MySQL**: 
+   ```bash
+   docker exec -it legal-mysql mysql -ulegal_app -plegal_password legal_management_db
+   ```
+
+5. **Kafka**:
+   ```bash
+   docker exec legal-kafka kafka-topics --list --bootstrap-server localhost:9092
+   ```
+
+## 🎯 Crear Usuario Inicial (Admin del Sistema)
+
+Opción 1: Directo en Base de Datos
+```sql
+INSERT INTO users (email, password_hash, full_name, first_name, last_name, phone_number, role_id, category_id, status) 
+VALUES (
+    'admin@legal.com',
+    '$2a$10$your_bcrypt_hash_here',  -- Generar con BCrypt
+    'Administrador Sistema',
+    'Administrador',
+    'Sistema',
+    '+1234567890',
+    1,  -- SYSTEM_ADMIN
+    1,  -- LEGAL category
+    'ACTIVE'
+);
+```
+
+Opción 2: Via API
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "admin@legal.com",
+    "password": "Admin123!",
+    "firstName": "Administrador",
+    "lastName": "Sistema",
+    "phoneNumber": "+1234567890"
+  }'
+```
+
+## 📝 Credenciales de Prueba
+
+Una vez que el sistema esté corriendo, usa estas credenciales para probar:
+
+```
+Email: admin@legal.com
+Password: Admin123!
+```
+
+## 🔍 URLs Importantes
+
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| Frontend | http://localhost:4200 | Aplicación web |
+| API Gateway | http://localhost:8080 | Gateway principal |
+| Eureka | http://eureka-server:8761 | Service Discovery |
+| Config Server | http://localhost:8888 | Configuración |
+| Auth Service | http://localhost:8081 | Autenticación |
+| User Service | http://localhost:8082 | Usuarios |
+| Case Service | http://localhost:8083 | Casos |
+| Notification Service | http://localhost:8084 | Notificaciones |
+| Document Service | http://localhost:8085 | Documentos |
+
+## 🛠️ Comandos Útiles
+
+### Docker
+
+```bash
+# Ver logs de un servicio
+docker-compose logs -f mysql
+
+# Reiniciar servicios
+docker-compose restart
+
+# Detener todos los servicios
+docker-compose down
+
+# Eliminar todo (incluyendo volúmenes)
+docker-compose down -v
+```
+
+### Maven (Backend)
+
+```bash
+# Compilar todo el proyecto
+mvn clean install
+
+# Compilar sin tests
+mvn clean install -DskipTests
+
+# Ejecutar tests
+mvn test
+
+# Limpiar build
+mvn clean
+```
+
+### Angular (Frontend)
+
+```bash
+# Instalar dependencias
+npm install
+
+# Iniciar en desarrollo
+ng serve
+
+# Compilar para producción
+ng build --configuration production
+
+# Ejecutar tests
+npm test
+
+# Linting
+ng lint
+```
+
+### Base de Datos
+
+```bash
+# Conectar a MySQL
+docker exec -it legal-mysql mysql -ulegal_app -plegal_password legal_management_db
+
+# Backup de BD
+docker exec legal-mysql mysqldump -uroot -proot_password legal_management_db > backup.sql
+
+# Restaurar BD
+docker exec -i legal-mysql mysql -uroot -proot_password legal_management_db < backup.sql
+```
+
+## ⚠️ Troubleshooting Común
+
+### 1. "Port already in use"
+
+```bash
+# Ver qué proceso usa el puerto
+lsof -i :8080
+
+# Matar proceso
+kill -9 <PID>
+```
+
+### 2. MySQL no inicia
+
+```bash
+# Ver logs
+docker-compose logs mysql
+
+# Reiniciar
+docker-compose restart mysql
+```
+
+### 3. Microservicios no se registran en Eureka
+
+- Verifica que Config Server esté corriendo primero
+- Verifica que Eureka Server esté corriendo
+- Revisa los logs del microservicio
+
+### 4. Frontend no se conecta al backend
+
+- Verifica que el API Gateway esté corriendo en puerto 8080
+- Revisa la consola del navegador para errores CORS
+- Verifica el archivo `environment.ts`
+
+## 📚 Siguiente Nivel
+
+Una vez que tengas todo funcionando localmente:
+
+1. Lee la [Documentación Completa](docs/INSTALLATION.md)
+2. Explora la [Arquitectura del Sistema](docs/architecture/ARCHITECTURE.md)
+3. Revisa la [Documentación de API](docs/api/API.md)
+4. Configura [CI/CD](docs/guides/CICD.md)
+5. Despliega en [AWS](docs/guides/AWS_DEPLOYMENT.md)
+
+## 🆘 ¿Necesitas Ayuda?
+
+- 📖 Documentación: `docs/`
+- 🐛 Issues: GitHub Issues
+- 💬 Chat: Slack #legal-system
+- 📧 Email: support@legal.com
+
+---
+
+**¡Felicidades! 🎉** 
+
+Si llegaste hasta aquí, deberías tener el sistema completo funcionando en tu máquina local.

@@ -1,0 +1,78 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - StripPrefix=0
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/api/v1/users/**, /api/v1/roles/**
+          filters:
+            - StripPrefix=0
+            - AuthenticationFilter
+
+        - id: case-service
+          uri: lb://case-service
+          predicates:
+            - Path=/api/v1/cases/**, /api/v1/versions/**, /api/v1/comments/**
+          filters:
+            - StripPrefix=0
+            - AuthenticationFilter
+
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/v1/notifications/**
+          filters:
+            - StripPrefix=0
+            - AuthenticationFilter
+
+        - id: document-service
+          uri: lb://document-service
+          predicates:
+            - Path=/api/v1/documents/**, /api/v1/s3/**
+          filters:
+            - StripPrefix=0
+            - AuthenticationFilter
+
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:4200"
+              - "https://ralrogolegal.com"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@eureka-server:8761/eureka
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: ${JWT_SECRET}
+  issuer: legal-management-system
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.legal.gateway: DEBUG

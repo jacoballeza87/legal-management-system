@@ -1,0 +1,165 @@
+# ============================================
+# AUTH SERVICE
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: legal-system-prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      initContainers:
+        - name: wait-for-config
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://config-server:8888/actuator/health; do
+                echo "Esperando config-server..."; sleep 5
+              done
+        - name: wait-for-eureka
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://eureka-server:8761/actuator/health; do
+                echo "Esperando eureka-server..."; sleep 5
+              done
+      containers:
+        - name: auth-service
+          image: ${ECR_BASE}/legal/auth-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: CONFIG_SERVER_URL
+              value: "http://config-server:8888"
+            - name: CONFIG_SERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_USER
+            - name: CONFIG_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_PASSWORD
+            - name: EUREKA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_USER
+            - name: EUREKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_PASSWORD
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@eureka-server:8761/eureka/"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_PASSWORD
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: REDIS_PORT
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: JWT_SECRET
+            # ── OAuth2 credentials ──
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: legal-oauth-secrets
+                  key: GOOGLE_CLIENT_ID
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: legal-oauth-secrets
+                  key: GOOGLE_CLIENT_SECRET
+            - name: GH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: legal-oauth-secrets
+                  key: GH_CLIENT_ID
+            - name: GH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: legal-oauth-secrets
+                  key: GH_CLIENT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8081
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: legal-system-prod
+spec:
+  selector:
+    app: auth-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+  type: ClusterIP

@@ -1,0 +1,69 @@
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:mysql://legal-case-system-db.cg5ygkuo00d4.us-east-1.rds.amazonaws.com:3306/legal_management_db?useSSL=true&requireSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    listener:
+      auto-startup: false
+    consumer:
+      group-id: notification-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+management:
+  health:
+    kafka:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+server:
+  port: 8084
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+aws:
+  region: us-east-1
+  ses:
+    region: us-east-1
+    from-email: noreply@ralrogolegal.com
+  sns:
+    topic-arn: ${SNS_TOPIC_ARN}
+
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID}
+  auth-token: ${TWILIO_AUTH_TOKEN}
+  phone-number: ${TWILIO_PHONE_NUMBER}
+
+inactivity:
+  alert-days: 3
+  check-cron: "0 0 8 * * MON-FRI"
+
+logging:
+  level:
+    com.legal.notification: DEBUG
+
+jwt:
+  secret: ${JWT_SECRET}
+  issuer: legal-management-system

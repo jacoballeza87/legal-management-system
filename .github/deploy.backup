@@ -1,0 +1,178 @@
+name: Build, Push to ECR and Deploy to EKS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER_NAME: legal-case-system-cluster
+  ECR_BASE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      # ── 2. Java 17 ─────────────��───────────────────────────────────────────
+      - name: Configurar Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
+          cache: maven
+
+      # ── 3. AWS Credentials ─────────────────────────────────────────────────
+      - name: Configurar AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ── 4. Login ECR ───────────────────────────────────────────────────────
+      - name: Login a ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # ── 4.5 Crear repositorios ECR si no existen ───────────────────────────
+      - name: Crear repositorios ECR
+        run: |
+          for SERVICE in config-server eureka-server api-gateway auth-service user-service case-service notification-service document-service; do
+            aws ecr describe-repositories --repository-names legal/$SERVICE --region us-east-1 2>/dev/null || \
+            aws ecr create-repository --repository-name legal/$SERVICE --region us-east-1
+          done
+
+      # ── 5. Build Maven ─────────────────────────────────────────────────────
+      - name: Build Maven
+        run: mvn clean package -DskipTests -Dmaven.test.skip=true -q
+        working-directory: backend
+
+      # ── 6. Build y Push imágenes ───────────────────────────────────────────
+      - name: Build y Push imágenes a ECR
+        working-directory: backend
+        run: |
+          aws ecr get-login-password --region us-east-1 | \
+            docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+
+          for SERVICE in config-server eureka-server api-gateway auth-service user-service case-service notification-service document-service; do
+            echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+            echo "Building $SERVICE..."
+            docker build \
+              -f ./$SERVICE/Dockerfile \
+              -t ${{ env.ECR_BASE }}/legal/$SERVICE:latest \
+              -t ${{ env.ECR_BASE }}/legal/$SERVICE:${{ github.sha }} \
+              .
+            docker push ${{ env.ECR_BASE }}/legal/$SERVICE:latest
+            docker push ${{ env.ECR_BASE }}/legal/$SERVICE:${{ github.sha }}
+            echo "$SERVICE ✅ pushed OK"
+          done
+
+      # ── 6.5 Verificar imágenes en ECR ──────────────────────────────────────
+      - name: Verificar imágenes en ECR
+        run: |
+          echo "🔍 Verificando que las imágenes existen en ECR..."
+          for SERVICE in config-server eureka-server api-gateway auth-service user-service case-service notification-service document-service; do
+            if aws ecr describe-images --repository-name legal/$SERVICE --region us-east-1 > /dev/null 2>&1; then
+              echo "✅ $SERVICE existe en ECR"
+            else
+              echo "❌ ERROR: $SERVICE NO existe en ECR"
+              exit 1
+            fi
+          done
+
+      # ── 7. Configurar kubectl ──────────────────────────────────────────────
+      - name: Configurar kubectl para EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name ${{ env.EKS_CLUSTER_NAME }}
+          kubectl get nodes
+
+      # ── 8. Crear namespace ─────────────────────────────────────────────────
+      - name: Crear namespace
+        run: |
+          kubectl apply -f k8s/namespace/namespace.yaml --validate=false
+
+      # ── 9. Aplicar Secrets en EKS ──────────────────────────────────────────
+      - name: Aplicar Secrets en EKS
+        run: |
+          sed -i 's|${DB_HOST}|${{ secrets.DB_HOST }}|g'                               k8s/config/secrets.yaml
+          sed -i 's|${GIT_USERNAME}|${{ secrets.GIT_USERNAME }}|g'                     k8s/config/secrets.yaml
+          sed -i 's|${GIT_PASSWORD}|${{ secrets.GIT_PASSWORD }}|g'                     k8s/config/secrets.yaml
+          sed -i 's|${GH_CLIENT_ID}|${{ secrets.GH_CLIENT_ID}}|g'                     k8s/config/secrets.yaml
+          sed -i 's|${GH_CLIENT_SECRET}|${{ secrets.GH_CLIENT_SECRET}}|g'                     k8s/config/secrets.yaml
+          sed -i 's|${GOOGLE_CLIENT_ID}|${{ secrets.GOOGLE_CLIENT_ID}}|g'                     k8s/config/secrets.yaml
+          sed -i 's|${GOOGLE_CLIENT_SECRET}|${{ secrets.GOOGLE_CLIENT_SECRET}}|g'                     k8s/config/secrets.yaml
+          sed -i 's|${DB_USER}|${{ secrets.DB_USER }}|g'                               k8s/config/secrets.yaml
+          sed -i 's|${DB_PASSWORD}|${{ secrets.DB_PASSWORD }}|g'                       k8s/config/secrets.yaml
+          sed -i 's|${JWT_SECRET}|${{ secrets.JWT_SECRET }}|g'                         k8s/config/secrets.yaml
+          sed -i 's|${EUREKA_USER}|${{ secrets.EUREKA_USER }}|g'                       k8s/config/secrets.yaml
+          sed -i 's|${EUREKA_PASSWORD}|${{ secrets.EUREKA_PASSWORD }}|g'               k8s/config/secrets.yaml
+          sed -i 's|${CONFIG_SERVER_USER}|${{ secrets.CONFIG_SERVER_USER }}|g'         k8s/config/secrets.yaml
+          sed -i 's|${CONFIG_SERVER_PASSWORD}|${{ secrets.CONFIG_SERVER_PASSWORD }}|g' k8s/config/secrets.yaml
+          sed -i 's|${TWILIO_ACCOUNT_SID}|${{ secrets.TWILIO_ACCOUNT_SID }}|g'         k8s/config/secrets.yaml
+          sed -i 's|${TWILIO_AUTH_TOKEN}|${{ secrets.TWILIO_AUTH_TOKEN }}|g'           k8s/config/secrets.yaml
+          sed -i 's|${TWILIO_PHONE_NUMBER}|${{ secrets.TWILIO_PHONE_NUMBER }}|g'       k8s/config/secrets.yaml
+          sed -i 's|${AWS_S3_BUCKET}|${{ secrets.AWS_S3_BUCKET }}|g'                   k8s/config/secrets.yaml
+          kubectl apply -f k8s/config/secrets.yaml --validate=false
+
+      # ── 10. Deploy a EKS ───────────────────────────────────────────────────
+      - name: Deploy a EKS
+        run: |
+          # Sustituir ECR_BASE en todos los yamls
+          find k8s/services -name "*.yaml" -exec \
+            sed -i 's|\${ECR_BASE}|${{ env.ECR_BASE }}|g' {} \;
+
+          # PASO 1: config-server — base de todo
+          kubectl apply -f k8s/services/01-config-eureka.yaml --validate=false
+          echo "⏳ Esperando config-server..."
+          kubectl rollout status deployment/config-server -n legal-system-prod --timeout=600s
+          echo "✅ config-server listo"
+
+          # PASO 2: eureka-server — sus init containers ya esperan config,
+          # pero igual esperamos aquí antes de aplicar los microservicios
+          echo "⏳ Esperando eureka-server..."
+          kubectl rollout status deployment/eureka-server -n legal-system-prod --timeout=600s
+          echo "✅ eureka-server listo"
+
+          # PASO 3: api-gateway y microservicios — sus init containers
+          # garantizan que no arrancan hasta que eureka esté UP
+          kubectl apply -f k8s/services/02-api-gateway.yaml --validate=false
+          kubectl apply -f k8s/services/03-microservices.yaml --validate=false
+          echo "✅ microservicios aplicados"
+
+      # ── 11. Verificar deploy ────────────────────��──────────────────────────
+      - name: Verificar deployments
+        run: |
+          echo "⏳ Verificando api-gateway..."
+          kubectl rollout status deployment/api-gateway -n legal-system-prod --timeout=600s || {
+            echo "❌ api-gateway falló. Mostrando logs..."
+            kubectl describe deployment api-gateway -n legal-system-prod
+            kubectl get pods -n legal-system-prod -l app=api-gateway -o wide
+            kubectl logs -l app=api-gateway -n legal-system-prod --tail=50 2>/dev/null || true
+            exit 1
+          }
+
+          echo "⏳ Verificando microservicios..."
+          for DEPLOY in auth-service user-service case-service notification-service document-service; do
+            kubectl rollout status deployment/$DEPLOY -n legal-system-prod --timeout=600s || {
+              echo "❌ $DEPLOY falló. Mostrando logs..."
+              kubectl describe deployment $DEPLOY -n legal-system-prod
+              kubectl get pods -n legal-system-prod -l app=$DEPLOY -o wide
+              kubectl logs -l app=$DEPLOY -n legal-system-prod --tail=50 2>/dev/null || true
+              exit 1
+            }
+            echo "✅ $DEPLOY listo"
+          done
+
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          kubectl get pods -n legal-system-prod
+          echo ""
+          echo "🚀 Deploy completado. LoadBalancer URL:"
+          kubectl get svc api-gateway -n legal-system-prod

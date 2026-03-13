@@ -1,0 +1,578 @@
+# ============================================
+# USER SERVICE
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: legal-system-prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      initContainers:
+        - name: wait-for-config
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://config-server:8888/actuator/health; do
+                echo "Esperando config-server..."; sleep 5
+              done
+        - name: wait-for-eureka
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://eureka-server:8761/actuator/health; do
+                echo "Esperando eureka-server..."; sleep 5
+              done
+      containers:
+        - name: user-service
+          image: ${ECR_BASE}/legal/user-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: CONFIG_SERVER_URL
+              value: "http://config-server:8888"
+            - name: CONFIG_SERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_USER
+            - name: CONFIG_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_PASSWORD
+            - name: EUREKA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_USER
+            - name: EUREKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_PASSWORD
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@eureka-server:8761/eureka/"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: JWT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8082
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: legal-system-prod
+spec:
+  selector:
+    app: user-service
+  ports:
+    - port: 8082
+      targetPort: 8082
+  type: ClusterIP
+---
+# ============================================
+# CASE SERVICE
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: case-service
+  namespace: legal-system-prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: case-service
+  template:
+    metadata:
+      labels:
+        app: case-service
+    spec:
+      initContainers:
+        - name: wait-for-config
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://config-server:8888/actuator/health; do
+                echo "Esperando config-server..."; sleep 5
+              done
+        - name: wait-for-eureka
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://eureka-server:8761/actuator/health; do
+                echo "Esperando eureka-server..."; sleep 5
+              done
+      containers:
+        - name: case-service
+          image: ${ECR_BASE}/legal/case-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: CONFIG_SERVER_URL
+              value: "http://config-server:8888"
+            - name: CONFIG_SERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_USER
+            - name: CONFIG_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_PASSWORD
+            - name: EUREKA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_USER
+            - name: EUREKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_PASSWORD
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@eureka-server:8761/eureka/"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_HOST
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_NAME
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: JWT_SECRET
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:29092"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: case-service
+  namespace: legal-system-prod
+spec:
+  selector:
+    app: case-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+  type: ClusterIP
+---
+# ============================================
+# NOTIFICATION SERVICE
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: legal-system-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-service
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      initContainers:
+        - name: wait-for-config
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://config-server:8888/actuator/health; do
+                echo "Esperando config-server..."; sleep 5
+              done
+        - name: wait-for-eureka
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://eureka-server:8761/actuator/health; do
+                echo "Esperando eureka-server..."; sleep 5
+              done
+      containers:
+        - name: notification-service
+          image: ${ECR_BASE}/legal/notification-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8084
+          env:
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: CONFIG_SERVER_URL
+              value: "http://config-server:8888"
+            - name: CONFIG_SERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_USER
+            - name: CONFIG_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_PASSWORD
+            - name: EUREKA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_USER
+            - name: EUREKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_PASSWORD
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@localhost:8761/eureka/"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_HOST
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_NAME
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: JWT_SECRET
+            - name: TWILIO_ACCOUNT_SID
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: TWILIO_ACCOUNT_SID
+            - name: TWILIO_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: TWILIO_AUTH_TOKEN
+            - name: TWILIO_PHONE_NUMBER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: TWILIO_PHONE_NUMBER
+            - name: SNS_TOPIC_ARN
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: SNS_TOPIC_ARN
+            - name: AWS_REGION
+              value: "us-east-1"
+            # ── Kafka disabled — not used by this service ──
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "localhost:9092"
+            - name: SPRING_KAFKA_CONSUMER_AUTO_STARTUP
+              value: "false"
+            - name: SPRING_KAFKA_LISTENER_AUTO_STARTUP
+              value: "false"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8084
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8084
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: legal-system-prod
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - port: 8084
+      targetPort: 8084
+  type: ClusterIP
+---
+# ============================================
+# DOCUMENT SERVICE
+# ============================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: document-service
+  namespace: legal-system-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: document-service
+  template:
+    metadata:
+      labels:
+        app: document-service
+    spec:
+      serviceAccountName: document-service
+      initContainers:
+        - name: wait-for-config
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://config-server:8888/actuator/health; do
+                echo "Esperando config-server..."; sleep 5
+              done
+        - name: wait-for-eureka
+          image: curlimages/curl:8.5.0
+          command:
+            - sh
+            - -c
+            - |
+              until curl -sf http://eureka-server:8761/actuator/health; do
+                echo "Esperando eureka-server..."; sleep 5
+              done
+      containers:
+        - name: document-service
+          image: ${ECR_BASE}/legal/document-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8085
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: CONFIG_SERVER_URL
+              value: "http://config-server:8888"
+            - name: CONFIG_SERVER_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_USER
+            - name: CONFIG_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: CONFIG_SERVER_PASSWORD
+            - name: EUREKA_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_USER
+            - name: EUREKA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: EUREKA_PASSWORD
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@eureka-server:8761/eureka/"
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_HOST
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_PASSWORD
+            - name: DB_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: DB_NAME
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: JWT_SECRET
+            - name: AWS_S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: legal-system-secrets
+                  key: AWS_S3_BUCKET
+            - name: AWS_REGION
+              value: "us-east-1"
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8085
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8085
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "300m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: document-service
+  namespace: legal-system-prod
+spec:
+  selector:
+    app: document-service
+  ports:
+    - port: 8085
+      targetPort: 8085
+  type: ClusterIP

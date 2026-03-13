@@ -1,0 +1,18 @@
+@import '../../../../assets/styles/auth.scss';
+
+:host { display: block; }
+
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--gold-500);
+  border-radius: 50%;
+  animation: bounce 0.8s ease-in-out infinite alternate;
+}
+
+@keyframes bounce {
+  from { transform: translateY(0); opacity: 0.4; }
+  to   { transform: translateY(-10px); opacity: 1; }
+}
+
+.btn { min-width: 200px; }

@@ -1,0 +1,33 @@
+<div class="oauth-loading">
+
+  <!-- Loading state -->
+  <ng-container *ngIf="status === 'loading'">
+    <div class="oauth-loading-icon">⚖️</div>
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+      <h2 class="oauth-loading-title">Verificando acceso con {{ providerName }}</h2>
+      <p class="oauth-loading-sub">Por favor espera un momento...</p>
+    </div>
+
+    <!-- Animated dots -->
+    <div style="display: flex; gap: 6px;">
+      <div class="loading-dot" style="animation-delay: 0s"></div>
+      <div class="loading-dot" style="animation-delay: 0.15s"></div>
+      <div class="loading-dot" style="animation-delay: 0.3s"></div>
+    </div>
+  </ng-container>
+
+  <!-- Error state -->
+  <ng-container *ngIf="status === 'error'">
+    <div style="font-size: 3.5rem; margin-bottom: 0.5rem;">⚠️</div>
+    <h2 class="oauth-loading-title" style="color: #fca5a5;">Error de autenticación</h2>
+    <p class="oauth-loading-sub" style="text-align: center; max-width: 340px;">
+      {{ errorMessage }}
+    </p>
+    <button class="btn btn-gold" style="margin-top: 1.5rem; min-width: 200px;"
+            (click)="goToLogin()">
+      Volver al inicio de sesión
+    </button>
+  </ng-container>
+
+</div>

@@ -1,0 +1,60 @@
+# ============================================
+# JAVA / MAVEN
+# ============================================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+# Maven wrapper
+.mvn/wrapper/maven-wrapper.jar
+
+# ============================================
+# SPRING BOOT
+# ============================================
+*.log
+spring-shell.log
+
+# ============================================
+# IDE - IntelliJ
+# ============================================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# IDE - Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# IDE - VS Code
+.vscode/
+
+# ============================================
+# OS
+# ============================================
+.DS_Store
+Thumbs.db
+
+# ============================================
+# KUBERNETES / SECRETS (precaución)
+# ============================================
+*.env
+.env*
+secrets/
+
+# ============================================
+# NODE (si tienes frontend)
+# ============================================
+node_modules/
+dist/
+.angular/
+config/oauth-secret.yaml

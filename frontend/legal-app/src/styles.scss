@@ -1,0 +1,26 @@
+/* Global entry point */
+@import 'assets/styles/auth.scss';
+
+/* Angular Material dark theme override */
+html, body {
+  height: 100%;
+  margin: 0;
+  background: #040d1a;
+  color: #edf2f7;
+}
+
+/* Router outlet */
+router-outlet + * {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Utility: visually hidden */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
