@@ -1,0 +1,166 @@
+server:
+  port: 8080
+  netty:
+    connection-timeout: 10s
+    idle-timeout: 60s
+
+spring:
+  application:
+    name: api-gateway
+
+  config:
+    import: "optional:configserver:http://${CONFIG_SERVER_USER:configuser}:${CONFIG_SERVER_PASSWORD:configpass}@config-server:8888"
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      connect-timeout: 1000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 4
+          min-idle: 1
+
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 30s
+        pool:
+          type: ELASTIC
+          max-connections: 500
+          acquire-timeout: 10000
+      metrics:
+        enabled: true
+      default-filters:
+        - name: RequestSize
+          args:
+            maxSize: 10MB
+        - name: DedupeResponseHeader
+          args:
+            name: Access-Control-Allow-Origin Access-Control-Allow-Credentials
+            strategy: RETAIN_UNIQUE
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      auth-cb:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 5
+        registerHealthIndicator: true
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+      user-cb:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        registerHealthIndicator: true
+      case-cb:
+        slidingWindowSize: 20
+        failureRateThreshold: 60
+        waitDurationInOpenState: 20s
+        permittedNumberOfCallsInHalfOpenState: 5
+        registerHealthIndicator: true
+      notification-cb:
+        slidingWindowSize: 10
+        failureRateThreshold: 70
+        waitDurationInOpenState: 15s
+        permittedNumberOfCallsInHalfOpenState: 3
+        registerHealthIndicator: true
+      document-cb:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 3
+        registerHealthIndicator: true
+  timelimiter:
+    instances:
+      auth-cb:          { timeoutDuration: 10s }
+      user-cb:          { timeoutDuration: 10s }
+      case-cb:          { timeoutDuration: 15s }
+      notification-cb:  { timeoutDuration: 8s  }
+      document-cb:      { timeoutDuration: 60s }
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway,circuitbreakers,ratelimiters
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+    ratelimiters:
+      enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Auth Service
+        url: /v3/api-docs/auth
+      - name: User Service
+        url: /v3/api-docs/user
+      - name: Case Service
+        url: /v3/api-docs/case
+      - name: Notification Service
+        url: /v3/api-docs/notification
+      - name: Document Service
+        url: /v3/api-docs/document
+  api-docs:
+    enabled: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: WARN
+    io.github.resilience4j: INFO
+    com.legal: DEBUG
+
+eureka:
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USER:eurekauser}:${EUREKA_PASSWORD:eurekapass}@eureka-server:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 5
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    com.legal: INFO
+    org.springframework.cloud.gateway: WARN
+
+management:
+  endpoint:
+    health:
+      show-details: when-authorized

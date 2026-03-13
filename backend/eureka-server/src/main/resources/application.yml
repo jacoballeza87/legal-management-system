@@ -1,0 +1,43 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+  security:
+    user:
+      name: ${EUREKA_USER:eurekauser}
+      password: ${EUREKA_PASSWORD:eurekapass}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOST:eureka-server}
+    prefer-ip-address: false
+
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://${spring.security.user.name}:${spring.security.user.password}@${eureka.instance.hostname}:${server.port}/eureka/
+
+  server:
+    eviction-interval-timer-in-ms: 5000
+    renewal-percent-threshold: 0.8
+    enable-self-preservation: ${EUREKA_SELF_PRESERVATION:false}
+    expected-client-renewal-interval-seconds: 15
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
+logging:
+  level:
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN
+    com.legal: INFO

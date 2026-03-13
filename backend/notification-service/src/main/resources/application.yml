@@ -1,0 +1,81 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: notification-service
+
+  config:
+    import: "optional:configserver:http://${CONFIG_SERVER_USER:configuser}:${CONFIG_SERVER_PASSWORD:configpass}@config-server:8888"
+
+  datasource:
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:legal_management_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    listener:
+      auto-startup: false
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.legal.*"
+
+  mail:
+    host: ${MAIL_HOST:email-smtp.us-east-1.amazonaws.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USER:eurekauser}:${EUREKA_PASSWORD:eurekapass}@eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+jwt:
+  secret: ${JWT_SECRET}
+
+aws:
+  ses:
+    region: ${AWS_REGION:us-east-1}
+    from-email: ${SES_FROM_EMAIL:noreply@legalapp.com}
+    from-name: "Legal Management System"
+
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+  from-number: ${TWILIO_PHONE_NUMBER:}
+  enabled: ${TWILIO_ENABLED:false}
+
+notification:
+  inactivity:
+    threshold-days: 7
+    check-cron: "0 0 8 * * MON-FRI"
+  retry:
+    max-attempts: 3
+    delay-ms: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

@@ -1,0 +1,55 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+
+  security:
+    user:
+      name: ${CONFIG_SERVER_USER:configuser}
+      password: ${CONFIG_SERVER_PASSWORD:configpass}
+
+  cloud:
+    config:
+      server:
+        git:
+          uri: ${CONFIG_REPO_URI:https://github.com/ralrogonlegal/legal-management-system.git}
+          default-label: main
+          search-paths: 'config/{application}'
+          clone-on-start: true
+          force-pull: true
+          username: ${GIT_USERNAME:}
+          password: ${GIT_PASSWORD:}
+        native:
+          search-locations: classpath:/config/{application}
+      default-label: main
+
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:native}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_USER:eureka}:${EUREKA_PASSWORD:eureka}@eureka-server:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh,bus-refresh
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    org.springframework.cloud.config: DEBUG
+    com.legal: INFO

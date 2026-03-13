@@ -1,0 +1,121 @@
+name: "Deploy MICROSERVICES + Gateway"
+
+on:
+  # Se dispara automáticamente cuando el workflow CORE termina exitosamente
+  workflow_run:
+    workflows: ["Build, Push to ECR and Deploy to EKS"]
+    types: [completed]
+    branches: [main]
+  # También se puede lanzar manualmente
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-microservices-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: us-east-1
+  EKS_CLUSTER_NAME: legal-case-system-cluster
+  ECR_BASE: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com
+
+jobs:
+  deploy-microservices:
+    runs-on: ubuntu-latest
+    # Solo corre si el workflow anterior terminó con éxito
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      # ── 2. AWS Credentials ─────────────────────────────────────────────────
+      - name: Configurar AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      # ── 3. Configurar kubectl ──────────────────────────────────────────────
+      - name: Configurar kubectl para EKS
+        run: |
+          aws eks update-kubeconfig \
+            --region ${{ env.AWS_REGION }} \
+            --name ${{ env.EKS_CLUSTER_NAME }}
+          kubectl get nodes
+
+      # ── 4. Verificar que CORE está saludable antes de continuar ───────────
+      - name: Verificar CORE saludable
+        run: |
+          echo "🔍 Verificando config-server..."
+          kubectl rollout status deployment/config-server -n legal-system-prod --timeout=120s
+          echo "🔍 Verificando eureka-server..."
+          kubectl rollout status deployment/eureka-server -n legal-system-prod --timeout=120s
+          echo "🔍 Verificando auth-service..."
+          kubectl rollout status deployment/auth-service -n legal-system-prod --timeout=120s
+          echo "✅ CORE saludable — procediendo con microservicios"
+
+      # ── 5. Deploy microservicios restantes + api-gateway ──────────────────
+      - name: Deploy microservicios a EKS
+        run: |
+          find k8s/services -name "*.yaml" -exec \
+            sed -i 's|\${ECR_BASE}|${{ env.ECR_BASE }}|g' {} \;
+
+          kubectl apply -f k8s/services/03-microservices.yaml --validate=false
+          kubectl apply -f k8s/services/02-api-gateway.yaml --validate=false
+          echo "✅ microservicios y api-gateway aplicados"
+
+      # ── 5.5 FIX: Forzar imagePullPolicy: Always en todos los microservicios ─
+      # Esto garantiza que Kubernetes siempre descargue la imagen más reciente
+      # desde ECR en cada deploy, evitando el problema de imagen cacheada/obsoleta
+      # que causaba el error "Could not resolve placeholder 'aws.access-key'".
+      - name: Forzar imagePullPolicy Always
+        run: |
+          for DEPLOY in user-service case-service notification-service document-service api-gateway; do
+            kubectl patch deployment $DEPLOY -n legal-system-prod \
+              --type=json \
+              -p='[{"op":"replace","path":"/spec/template/spec/containers/0/imagePullPolicy","value":"Always"}]' \
+              2>/dev/null && echo "✅ imagePullPolicy=Always aplicado en $DEPLOY" \
+              || echo "⚠️  $DEPLOY aún no existe, se aplicará en el siguiente ciclo"
+          done
+
+      # ── 6. Verificar todos los microservicios ─────────────────────────────
+      - name: Verificar microservicios
+        run: |
+          for DEPLOY in user-service case-service notification-service document-service; do
+            echo "⏳ Verificando $DEPLOY..."
+            kubectl rollout status deployment/$DEPLOY -n legal-system-prod --timeout=600s || {
+              echo "❌ $DEPLOY falló. Logs:"
+              kubectl describe deployment $DEPLOY -n legal-system-prod
+              kubectl get pods -n legal-system-prod -l app=$DEPLOY -o wide
+              kubectl logs -l app=$DEPLOY -n legal-system-prod --tail=80 2>/dev/null || true
+              exit 1
+            }
+            echo "✅ $DEPLOY listo"
+          done
+
+      # ── 7. Verificar api-gateway ───────────────────────────────────────────
+      - name: Verificar api-gateway
+        run: |
+          echo "⏳ Verificando api-gateway..."
+          kubectl rollout status deployment/api-gateway -n legal-system-prod --timeout=600s || {
+            echo "❌ api-gateway falló. Logs:"
+            kubectl describe deployment api-gateway -n legal-system-prod
+            kubectl get pods -n legal-system-prod -l app=api-gateway -o wide
+            kubectl logs -l app=api-gateway -n legal-system-prod --tail=80 2>/dev/null || true
+            exit 1
+          }
+          echo "✅ api-gateway listo"
+
+      # ── 8. Resumen final ───────────────────────────────────────────────────
+      - name: Resumen del deploy
+        run: |
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🚀 DEPLOY COMPLETO"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          kubectl get pods -n legal-system-prod
+          echo ""
+          echo "🌐 LoadBalancer URL:"
+          kubectl get svc api-gateway -n legal-system-prod

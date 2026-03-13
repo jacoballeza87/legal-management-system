@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Alerta de Inactividad</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 8px;
+                 overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    .header { background: #C0392B; color: white; padding: 30px; text-align: center; }
+    .content { padding: 30px; line-height: 1.6; }
+    .alert-box { background: #FDF2F0; border-left: 4px solid #C0392B; padding: 15px;
+                 border-radius: 4px; margin: 15px 0; }
+    .footer { background: #f5f5f5; padding: 20px; text-align: center; font-size: 12px; color: #777; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚠️ Alerta de Inactividad</h1>
+    </div>
+    <div class="content">
+      <p>El siguiente caso no ha tenido actividad:</p>
+      <div class="alert-box">
+        <strong>Caso:</strong> <span th:text="${caseNumber}">CASE-2024-00001</span><br>
+        <strong>Sin actividad por:</strong> <span th:text="${thresholdDays}">7</span> días<br>
+        <strong>Última actividad:</strong> <span th:text="${lastActivity}">2024-01-01</span>
+      </div>
+      <p>Por favor, actualice el estado del caso lo antes posible.</p>
+    </div>
+    <div class="footer">
+      <p>Legal Management System — Alerta automática</p>
+    </div>
+  </div>
+</body>
+</html>
