@@ -40,13 +40,7 @@ spring:
       properties:
         spring.json.trusted.packages: "com.legal.cases.kafka"
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://${EUREKA_USER:eurekauser}:${EUREKA_PASSWORD:eurekapass}@eureka-server:8761/eureka/
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
+
 
 jwt:
   secret: ${JWT_SECRET}

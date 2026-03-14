@@ -16,27 +16,10 @@ spring:
     show-sql: false
     database-platform: org.hibernate.dialect.MySQL8Dialect
 
-  kafka:
-    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    consumer:
-      group-id: case-service-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
+  server:
+    port: 8083
 
-server:
-  port: 8083
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@eureka-server:8761/eureka
-  instance:
-    prefer-ip-address: true
 
 qr:
   base-url: ${APP_BASE_URL:http://localhost:4200}

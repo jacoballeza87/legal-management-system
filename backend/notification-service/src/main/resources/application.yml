@@ -44,12 +44,6 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://${EUREKA_USER:eurekauser}:${EUREKA_PASSWORD:eurekapass}@eureka-server:8761/eureka/
-  instance:
-    prefer-ip-address: true
 
 jwt:
   secret: ${JWT_SECRET}

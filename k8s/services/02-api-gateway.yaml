@@ -35,18 +35,6 @@ spec:
                 sleep 5
               done
               echo "config-server listo!"
-        - name: wait-for-eureka
-          image: curlimages/curl:8.5.0
-          command:
-            - sh
-            - -c
-            - |
-              echo "Esperando eureka-server..."
-              until curl -sf http://eureka-server:8761/actuator/health; do
-                echo "eureka-server no listo, reintentando en 5s..."
-                sleep 5
-              done
-              echo "eureka-server listo!"
         - name: wait-for-auth
           image: curlimages/curl:8.5.0
           command:
@@ -69,18 +57,6 @@ spec:
               value: "docker"
             - name: CONFIG_SERVER_URL
               value: "http://config-server:8888"
-            - name: EUREKA_USER
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_USER
-            - name: EUREKA_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_PASSWORD
-            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@eureka-server:8761/eureka/"
             - name: JWT_SECRET
               valueFrom:
                 secretKeyRef:

@@ -290,12 +290,7 @@ services:
     depends_on:
       config-server:
         condition: service_healthy
-      eureka-server:
-        condition: service_healthy
-    environment:
-      SPRING_PROFILES_ACTIVE: docker
-      CONFIG_SERVER_URL: http://config-server:8888
-       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:password@eureka-server:8761/eureka/
+
     networks:
       - legal-network
     restart: on-failure

@@ -28,17 +28,6 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:native}
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://${EUREKA_USER:eureka}:${EUREKA_PASSWORD:eureka}@eureka-server:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
-    lease-renewal-interval-in-seconds: 10
-    lease-expiration-duration-in-seconds: 30
 
 management:
   endpoints:

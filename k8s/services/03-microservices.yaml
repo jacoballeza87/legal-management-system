@@ -26,15 +26,6 @@ spec:
               until curl -sf http://config-server:8888/actuator/health; do
                 echo "Esperando config-server..."; sleep 5
               done
-        - name: wait-for-eureka
-          image: curlimages/curl:8.5.0
-          command:
-            - sh
-            - -c
-            - |
-              until curl -sf http://eureka-server:8761/actuator/health; do
-                echo "Esperando eureka-server..."; sleep 5
-              done
       containers:
         - name: user-service
           image: ${ECR_BASE}/legal/user-service:latest
@@ -56,18 +47,6 @@ spec:
                 secretKeyRef:
                   name: legal-system-secrets
                   key: CONFIG_SERVER_PASSWORD
-            - name: EUREKA_USER
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_USER
-            - name: EUREKA_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_PASSWORD
-            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@eureka-server:8761/eureka/"
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -161,15 +140,6 @@ spec:
               until curl -sf http://config-server:8888/actuator/health; do
                 echo "Esperando config-server..."; sleep 5
               done
-        - name: wait-for-eureka
-          image: curlimages/curl:8.5.0
-          command:
-            - sh
-            - -c
-            - |
-              until curl -sf http://eureka-server:8761/actuator/health; do
-                echo "Esperando eureka-server..."; sleep 5
-              done
       containers:
         - name: case-service
           image: ${ECR_BASE}/legal/case-service:latest
@@ -191,18 +161,6 @@ spec:
                 secretKeyRef:
                   name: legal-system-secrets
                   key: CONFIG_SERVER_PASSWORD
-            - name: EUREKA_USER
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_USER
-            - name: EUREKA_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_PASSWORD
-            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@eureka-server:8761/eureka/"
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -233,8 +191,6 @@ spec:
                 secretKeyRef:
                   name: legal-system-secrets
                   key: JWT_SECRET
-            - name: KAFKA_BOOTSTRAP_SERVERS
-              value: "kafka:29092"
           readinessProbe:
             httpGet:
               path: /actuator/health
@@ -298,15 +254,6 @@ spec:
               until curl -sf http://config-server:8888/actuator/health; do
                 echo "Esperando config-server..."; sleep 5
               done
-        - name: wait-for-eureka
-          image: curlimages/curl:8.5.0
-          command:
-            - sh
-            - -c
-            - |
-              until curl -sf http://eureka-server:8761/actuator/health; do
-                echo "Esperando eureka-server..."; sleep 5
-              done
       containers:
         - name: notification-service
           image: ${ECR_BASE}/legal/notification-service:latest
@@ -338,18 +285,6 @@ spec:
                 secretKeyRef:
                   name: legal-system-secrets
                   key: CONFIG_SERVER_PASSWORD
-            - name: EUREKA_USER
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_USER
-            - name: EUREKA_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_PASSWORD
-            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@localhost:8761/eureka/"
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
@@ -397,13 +332,6 @@ spec:
                   key: SNS_TOPIC_ARN
             - name: AWS_REGION
               value: "us-east-1"
-            # ── Kafka disabled — not used by this service ──
-            - name: KAFKA_BOOTSTRAP_SERVERS
-              value: "localhost:9092"
-            - name: SPRING_KAFKA_CONSUMER_AUTO_STARTUP
-              value: "false"
-            - name: SPRING_KAFKA_LISTENER_AUTO_STARTUP
-              value: "false"
           readinessProbe:
             httpGet:
               path: /actuator/health
@@ -468,15 +396,6 @@ spec:
               until curl -sf http://config-server:8888/actuator/health; do
                 echo "Esperando config-server..."; sleep 5
               done
-        - name: wait-for-eureka
-          image: curlimages/curl:8.5.0
-          command:
-            - sh
-            - -c
-            - |
-              until curl -sf http://eureka-server:8761/actuator/health; do
-                echo "Esperando eureka-server..."; sleep 5
-              done
       containers:
         - name: document-service
           image: ${ECR_BASE}/legal/document-service:latest
@@ -498,18 +417,6 @@ spec:
                 secretKeyRef:
                   name: legal-system-secrets
                   key: CONFIG_SERVER_PASSWORD
-            - name: EUREKA_USER
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_USER
-            - name: EUREKA_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_PASSWORD
-            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@eureka-server:8761/eureka/"
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:

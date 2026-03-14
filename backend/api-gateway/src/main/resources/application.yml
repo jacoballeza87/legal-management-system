@@ -137,17 +137,7 @@ logging:
     io.github.resilience4j: INFO
     com.legal: DEBUG
 
-eureka:
-  instance:
-    prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 10
-    lease-expiration-duration-in-seconds: 30
-  client:
-    service-url:
-      defaultZone: http://${EUREKA_USER:eurekauser}:${EUREKA_PASSWORD:eurekapass}@eureka-server:8761/eureka
-    register-with-eureka: true
-    fetch-registry: true
-    registry-fetch-interval-seconds: 5
+
 
 ---
 spring:

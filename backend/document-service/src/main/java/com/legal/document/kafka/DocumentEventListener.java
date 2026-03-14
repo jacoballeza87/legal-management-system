@@ -3,7 +3,6 @@ package com.legal.document.kafka;
 import com.legal.document.service.GoogleDriveService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import java.util.Map;
 
@@ -16,11 +15,8 @@ import java.util.Map;
 public class DocumentEventListener {
 
     private final GoogleDriveService driveService;
-
-    @KafkaListener(topics = "case-events", groupId = "document-service-group")
     public void handleCaseEvent(Map<String, Object> event) {
         String eventType = (String) event.get("eventType");
-
         if ("CASE_CREATED".equals(eventType)) {
             String caseNumber  = (String) event.get("caseNumber");
             String lawyerEmail = (String) event.get("lawyerEmail");

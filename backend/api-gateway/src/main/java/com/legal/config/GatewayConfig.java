@@ -95,7 +95,7 @@ public RedisRateLimiter defaultRateLimiter() {
                             org.springframework.http.HttpStatus.GATEWAY_TIMEOUT)
                         .setBackoff(Duration.ofMillis(100), Duration.ofMillis(500), 2, true))
                 )
-                .uri("lb://auth-service")
+                .uri("http://auth-service:8081")
             )
 
             // ── USER SERVICE ─────────────────────────────────────────────────
@@ -111,7 +111,7 @@ public RedisRateLimiter defaultRateLimiter() {
                         .setName("user-cb")
                         .setFallbackUri("forward:/fallback/user"))
                 )
-                .uri("lb://user-service")
+                .uri("http://user-service:8082")
             )
 
             // ── CASE SERVICE ─────────────────────────────────────────────────
@@ -174,11 +174,11 @@ public RedisRateLimiter defaultRateLimiter() {
             .route("auth-openapi", r -> r
                 .path("/v3/api-docs/auth")
                 .filters(f -> f.rewritePath("/v3/api-docs/auth", "/v3/api-docs"))
-                .uri("lb://auth-service"))
+                .uri("http://auth-service:8081"))
             .route("user-openapi", r -> r
                 .path("/v3/api-docs/user")
                 .filters(f -> f.rewritePath("/v3/api-docs/user", "/v3/api-docs"))
-                .uri("lb://user-service"))
+                .uri("http://user-service:8082"))
             .route("case-openapi", r -> r
                 .path("/v3/api-docs/case")
                 .filters(f -> f.rewritePath("/v3/api-docs/case", "/v3/api-docs"))

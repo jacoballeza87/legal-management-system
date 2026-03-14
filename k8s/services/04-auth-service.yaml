@@ -26,15 +26,6 @@ spec:
               until curl -sf http://config-server:8888/actuator/health; do
                 echo "Esperando config-server..."; sleep 5
               done
-        - name: wait-for-eureka
-          image: curlimages/curl:8.5.0
-          command:
-            - sh
-            - -c
-            - |
-              until curl -sf http://eureka-server:8761/actuator/health; do
-                echo "Esperando eureka-server..."; sleep 5
-              done
       containers:
         - name: auth-service
           image: ${ECR_BASE}/legal/auth-service:latest
@@ -56,18 +47,6 @@ spec:
                 secretKeyRef:
                   name: legal-system-secrets
                   key: CONFIG_SERVER_PASSWORD
-            - name: EUREKA_USER
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_USER
-            - name: EUREKA_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: legal-system-secrets
-                  key: EUREKA_PASSWORD
-            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-              value: "http://$(EUREKA_USER):$(EUREKA_PASSWORD)@eureka-server:8761/eureka/"
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:

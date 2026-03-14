@@ -21,24 +21,9 @@ spring:
       max-file-size: 50MB
       max-request-size: 100MB
 
-  kafka:
-    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
-    consumer:
-      group-id: document-service-group
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "*"
-
 server:
   port: 8085
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://${EUREKA_USER}:${EUREKA_PASSWORD}@eureka-server:8761/eureka
-  instance:
-    prefer-ip-address: true
 
 aws:
   s3:
