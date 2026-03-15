@@ -1,7 +1,8 @@
-package com.legal.cases.kafka;
+package com.legal.cases.events;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -9,15 +10,17 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class CaseEventListener {
 
-    // Ejemplo: escuchar si un usuario fue eliminado para actualizar casos
+    @RabbitListener(queues = "user.deleted.queue")
     public void onUserDeleted(Object event) {
+
         log.info("Evento user.deleted recibido: {}", event);
-        // TODO: reasignar o notificar casos del usuario eliminado
+
     }
 
-
+    @RabbitListener(queues = "document.uploaded.queue")
     public void onDocumentUploaded(Object event) {
+
         log.debug("Documento subido: {}", event);
-        // TODO: vincular documento a versión de caso si corresponde
+
     }
 }

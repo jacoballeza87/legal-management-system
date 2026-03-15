@@ -1,11 +1,11 @@
-package com.legal.notification.kafka;
+package com.legal.notification.events;
 
 import com.legal.notification.dto.NotificationRequest;
 import com.legal.notification.model.Notification;
 import com.legal.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import java.util.Map;
 
@@ -16,7 +16,7 @@ public class NotificationEventListener {
 
     private final NotificationService notificationService;
 
-    @KafkaListener(topics = "case-events", groupId = "notification-service-group")
+    @RabbitListener(queues = "case.events.queue")
     public void handleCaseEvent(Map<String, Object> event) {
         String eventType  = (String) event.get("eventType");
         Long   caseId     = Long.valueOf(event.get("caseId").toString());
@@ -64,7 +64,7 @@ public class NotificationEventListener {
         }
     }
 
-    @KafkaListener(topics = "user-events", groupId = "notification-service-group")
+    @RabbitListener(queues = "case.events.queue")
     public void handleUserEvent(Map<String, Object> event) {
         String eventType = (String) event.get("eventType");
         log.info("Evento de usuario recibido: {}", eventType);

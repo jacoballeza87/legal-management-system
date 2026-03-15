@@ -4,10 +4,6 @@ server:
 spring:
   application:
     name: case-service
-
-  config:
-    import: "optional:configserver:http://${CONFIG_SERVER_USER:configuser}:${CONFIG_SERVER_PASSWORD:configpass}@config-server:8888"
-
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:legal_management_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${DB_USER:root}
@@ -16,6 +12,11 @@ spring:
     hikari:
       maximum-pool-size: 15
       minimum-idle: 3
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
   jpa:
     hibernate:
@@ -25,22 +26,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
 
-  kafka:
-    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.add.type.headers: false
-    consumer:
-      group-id: case-service-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.legal.cases.kafka"
-
-
 
 jwt:
   secret: ${JWT_SECRET}
@@ -49,14 +34,6 @@ jwt:
 qr:
   base-url: ${QR_BASE_URL:http://localhost:4200}
   size: 300
-
-kafka:
-  topics:
-    case-created: case.created
-    case-updated: case.updated
-    case-deleted: case.deleted
-    case-status-changed: case.status.changed
-    collaborator-added: case.collaborator.added
 
 pagination:
   default-page-size: 20

@@ -1,16 +1,7 @@
-FROM eclipse-temurin:17-jre-alpine
+FROM openjdk:21-jdk-slim
+
 WORKDIR /app
 
-RUN addgroup -S legal && adduser -S legal -G legal
-USER legal
+COPY target/*.jar app.jar
 
-COPY auth-service/target/*.jar app.jar
-
-EXPOSE 8081
-
-HEALTHCHECK --interval=15s --timeout=5s --start-period=30s --retries=3 \
-  CMD wget -qO- http://localhost:8081/actuator/health || exit 1
-
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
-
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
+ENTRYPOINT ["java","-jar","/app/app.jar"]

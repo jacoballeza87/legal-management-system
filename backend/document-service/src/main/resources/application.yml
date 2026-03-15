@@ -4,10 +4,6 @@ server:
 spring:
   application:
     name: document-service
-
-  config:
-    import: "optional:configserver:http://${CONFIG_SERVER_USER:configuser}:${CONFIG_SERVER_PASSWORD:configpass}@config-server:8888"
-
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:legal_management_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${DB_USER:root}
@@ -21,20 +17,11 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-
-  kafka:
-    bootstrap-servers: ${KAFKA_SERVERS:localhost:9092}
-    consumer:
-      group-id: document-service-group
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      properties:
-        spring.json.trusted.packages: "com.legal.*"
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
   servlet:
     multipart:
       enabled: true

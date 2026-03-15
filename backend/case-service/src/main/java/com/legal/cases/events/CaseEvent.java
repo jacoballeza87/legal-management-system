@@ -1,4 +1,4 @@
-package com.legal.cases.kafka;
+package com.legal.cases.events;
 
 import com.legal.cases.model.Case;
 import lombok.*;
