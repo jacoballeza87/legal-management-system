@@ -5,16 +5,27 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class CaseEvent {
-    private String eventType;       // CREATED, UPDATED, DELETED, STATUS_CHANGED
+
+    private String eventType;
     private Long caseId;
     private String caseNumber;
     private String title;
-    private Case.CaseStatus status;
-    private Case.CaseStatus previousStatus;
-    private Long ownerId;
-    private String clientName;
-    private Long triggeredBy;       // userId que generó el evento
-    private LocalDateTime occurredAt;
+    private Case.CaseStatus oldStatus;
+    private Case.CaseStatus newStatus;
+    private Long userId;
+    private String userName;
+    private Long collaboratorId;
+    private LocalDateTime timestamp;
+
+    // 👇 AGREGA ESTE CONSTRUCTOR SIMPLE
+    public CaseEvent(Long caseId, String eventType, Long userId) {
+        this.caseId = caseId;
+        this.eventType = eventType;
+        this.userId = userId;
+        this.timestamp = LocalDateTime.now();
+    }
 }

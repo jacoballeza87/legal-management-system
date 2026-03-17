@@ -16,9 +16,10 @@ public class DocumentEventListener {
     private final GoogleDriveService driveService;
 
     @RabbitListener(queues = "case.created.queue")
-    public void handleCaseEvent(Map<String, Object> event) {
+    public void handleCaseEvent(Map<String, Object> event) throws Exception{
 
-        String eventType = (String) event.get("eventType");
+        try{
+ String eventType = (String) event.get("eventType");
 
         if ("CASE_CREATED".equals(eventType)) {
 
@@ -28,5 +29,9 @@ public class DocumentEventListener {
 
             driveService.createCaseFolder(caseNumber, null);
         }
+        }catch (Exception e){
+            System.out.println("exception occurred on handle case event"+e);
+        }
+       
     }
 }

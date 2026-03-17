@@ -1,61 +1,65 @@
 package com.legal.cases.events;
 
-import com.legal.cases.model.*;
+import com.legal.cases.model.Case;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
-@Component
+@Service
 @RequiredArgsConstructor
-@Slf4j
 public class CaseEventProducer {
 
     private final RabbitTemplate rabbitTemplate;
 
-    private static final String EXCHANGE = "legal.exchange";
+    private static final String EXCHANGE = "case.exchange";
 
-    public void publishCaseCreated(Case legalCase, Long triggeredBy) {
-
-        CaseEvent event = buildEvent("CASE_CREATED", legalCase, null, triggeredBy);
-
-        rabbitTemplate.convertAndSend(
-                EXCHANGE,
-                "case.created",
-                event
+    public void publishCaseCreated(Case legalCase, Long userId) {
+        CaseEvent event = new CaseEvent(
+                legalCase.getId(),
+                "CASE_CREATED",
+                userId
         );
 
-        log.debug("Evento CASE_CREATED enviado");
+        rabbitTemplate.convertAndSend(EXCHANGE, "case.created", event);
     }
 
-    public void publishCaseUpdated(Case legalCase, Long triggeredBy) {
-
-        CaseEvent event = buildEvent("CASE_UPDATED", legalCase, null, triggeredBy);
-
-        rabbitTemplate.convertAndSend(
-                EXCHANGE,
-                "case.updated",
-                event
+    public void publishCaseUpdated(Case legalCase, Long userId) {
+        CaseEvent event = new CaseEvent(
+                legalCase.getId(),
+                "CASE_UPDATED",
+                userId
         );
+
+        rabbitTemplate.convertAndSend(EXCHANGE, "case.updated", event);
     }
 
-    private CaseEvent buildEvent(String type, Case c,
-                                 Case.CaseStatus prevStatus,
-                                 Long triggeredBy) {
+    public void publishStatusChanged(Case legalCase, Case.CaseStatus previousStatus, Long userId) {
+        CaseEvent event = new CaseEvent(
+                legalCase.getId(),
+                "CASE_STATUS_CHANGED",
+                userId
+        );
 
-        return CaseEvent.builder()
-                .eventType(type)
-                .caseId(c.getId())
-                .caseNumber(c.getCaseNumber())
-                .title(c.getTitle())
-                .status(c.getStatus())
-                .previousStatus(prevStatus)
-                .ownerId(c.getOwnerId())
-                .clientName(c.getClientName())
-                .triggeredBy(triggeredBy)
-                .occurredAt(LocalDateTime.now())
-                .build();
+        rabbitTemplate.convertAndSend(EXCHANGE, "case.status.changed", event);
+    }
+
+    public void publishCollaboratorAdded(Case legalCase, Long collaboratorId, Long addedBy) {
+        CaseEvent event = new CaseEvent(
+                legalCase.getId(),
+                "CASE_COLLABORATOR_ADDED",
+                addedBy
+        );
+
+        rabbitTemplate.convertAndSend(EXCHANGE, "case.collaborator.added", event);
+    }
+
+    public void publishCaseDeleted(Long caseId, String caseNumber, Long userId) {
+        CaseEvent event = new CaseEvent(
+                caseId,
+                "CASE_DELETED",
+                userId
+        );
+
+        rabbitTemplate.convertAndSend(EXCHANGE, "case.deleted", event);
     }
 }

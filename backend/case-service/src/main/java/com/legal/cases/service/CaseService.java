@@ -2,7 +2,7 @@ package com.legal.cases.service;
 
 import com.legal.cases.dto.*;
 import com.legal.cases.exception.CaseNotFoundException;
-import com.legal.cases.kafka.CaseEventProducer;
+import com.legal.cases.events.CaseEventProducer;
 import com.legal.cases.mapper.CaseMapper;
 import com.legal.cases.model.*;
 import com.legal.cases.repository.*;
