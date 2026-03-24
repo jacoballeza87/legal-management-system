@@ -1,4 +1,5 @@
 package com.legal.config;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
@@ -13,16 +14,15 @@ import java.time.Duration;
 
 /**
  * Configuración de rutas del API Gateway.
+ * SIN Eureka — todas las URIs apuntan directamente
+ * a los nombres de los contenedores Docker.
  *
- * Usa "lb://" (load-balanced) para que Eureka resuelva
- * automáticamente las instancias de cada microservicio.
- *
- * Cada ruta tiene:
- *  - Path predicate
- *  - StripPrefix para quitar /api/v1 antes de reenviar
- *  - Circuit Breaker con fallback
- *  - Rate limiter por IP
- *  - Retry automático en errores 5xx
+ * Puertos de cada servicio:
+ *   auth-service        → 8081
+ *   user-service        → 8082
+ *   case-service        → 8083
+ *   notification-service→ 8084
+ *   document-service    → 8085
  */
 @Configuration
 public class GatewayConfig {
@@ -40,14 +40,12 @@ public class GatewayConfig {
         };
     }
 
-    // ── Key Resolver: limitar por usuario autenticado (JWT sub) ──────────────
+    // ── Key Resolver: limitar por usuario autenticado ────────────────────────
     @Bean
-    
     public KeyResolver userKeyResolver() {
         return exchange -> {
             String auth = exchange.getRequest().getHeaders().getFirst("Authorization");
             if (auth != null && auth.startsWith("Bearer ")) {
-                // El subject del JWT se usa como clave (extraído por AuthenticationFilter)
                 String userId = exchange.getRequest().getHeaders().getFirst("X-User-Id");
                 return Mono.just(userId != null ? userId : "anonymous");
             }
@@ -56,35 +54,27 @@ public class GatewayConfig {
     }
 
     // ── Rate Limiter: 20 req/seg por defecto ──────────────────────────────────
-  @Bean
-@Primary
-
-public RedisRateLimiter defaultRateLimiter() {
-    return new RedisRateLimiter(20, 40);
-}
-    // ── Rate Limiter: más restrictivo para auth ───────────────────────────────
- //  @Bean
-//@Qualifier("authRateLimiter")
-//public RedisRateLimiter authRateLimiter() {
- //   return new RedisRateLimiter(5, 10);
-//}
+    @Bean
+    @Primary
+    public RedisRateLimiter defaultRateLimiter() {
+        return new RedisRateLimiter(20, 40);
+    }
 
     // ── RUTAS ─────────────────────────────────────────────────────────────────
-
-  @Bean
+    @Bean
     public RouteLocator routes(RouteLocatorBuilder builder,
-                           @Qualifier("defaultRateLimiter") RedisRateLimiter defaultRateLimiter) {
+                               @Qualifier("defaultRateLimiter") RedisRateLimiter defaultRateLimiter) {
         return builder.routes()
 
             // ── AUTH SERVICE ─────────────────────────────────────────────────
             .route("auth-service", r -> r
-    .path("/api/v1/auth/**")
-    .filters(f -> f
-        .stripPrefix(2)
-        .addRequestHeader("X-Gateway-Source", "legal-gateway")
-        .requestRateLimiter(c -> c
-            .setRateLimiter(new RedisRateLimiter(5, 10))  // inline, sin bean
-            .setKeyResolver(ipKeyResolver()))
+                .path("/api/v1/auth/**")
+                .filters(f -> f
+                    .stripPrefix(2)
+                    .addRequestHeader("X-Gateway-Source", "legal-gateway")
+                    .requestRateLimiter(c -> c
+                        .setRateLimiter(new RedisRateLimiter(5, 10))
+                        .setKeyResolver(ipKeyResolver()))
                     .circuitBreaker(c -> c
                         .setName("auth-cb")
                         .setFallbackUri("forward:/fallback/auth"))
@@ -128,12 +118,11 @@ public RedisRateLimiter defaultRateLimiter() {
                         .setFallbackUri("forward:/fallback/case"))
                     .retry(config -> config
                         .setRetries(1)
-                        .setMethods(
-                            org.springframework.http.HttpMethod.GET)
-                        .setStatuses(
-                            org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE))
+                        .setMethods(org.springframework.http.HttpMethod.GET)
+                        .setStatuses(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE))
                 )
-                .uri("lb://case-service")
+                // ✅ CORREGIDO: http directo en lugar de lb://
+                .uri("http://case-service:8083")
             )
 
             // ── NOTIFICATION SERVICE ─────────────────────────────────────────
@@ -149,7 +138,8 @@ public RedisRateLimiter defaultRateLimiter() {
                         .setName("notification-cb")
                         .setFallbackUri("forward:/fallback/notification"))
                 )
-                .uri("lb://notification-service")
+                // ✅ CORREGIDO: http directo en lugar de lb://
+                .uri("http://notification-service:8084")
             )
 
             // ── DOCUMENT SERVICE ─────────────────────────────────────────────
@@ -158,7 +148,6 @@ public RedisRateLimiter defaultRateLimiter() {
                 .filters(f -> f
                     .stripPrefix(2)
                     .addRequestHeader("X-Gateway-Source", "legal-gateway")
-                    // El document-service puede recibir archivos grandes, rate limiter más permisivo
                     .requestRateLimiter(c -> c
                         .setRateLimiter(defaultRateLimiter)
                         .setKeyResolver(userKeyResolver()))
@@ -166,11 +155,11 @@ public RedisRateLimiter defaultRateLimiter() {
                         .setName("document-cb")
                         .setFallbackUri("forward:/fallback/document"))
                 )
-                .uri("lb://document-service")
+                // ✅ CORREGIDO: http directo en lugar de lb://
+                .uri("http://document-service:8085")
             )
 
             // ── SWAGGER AGGREGATION ──────────────────────────────────────────
-            // Permite acceder a la doc de cada servicio desde el gateway
             .route("auth-openapi", r -> r
                 .path("/v3/api-docs/auth")
                 .filters(f -> f.rewritePath("/v3/api-docs/auth", "/v3/api-docs"))
@@ -182,15 +171,15 @@ public RedisRateLimiter defaultRateLimiter() {
             .route("case-openapi", r -> r
                 .path("/v3/api-docs/case")
                 .filters(f -> f.rewritePath("/v3/api-docs/case", "/v3/api-docs"))
-                .uri("lb://case-service"))
+                .uri("http://case-service:8083"))
             .route("notification-openapi", r -> r
                 .path("/v3/api-docs/notification")
                 .filters(f -> f.rewritePath("/v3/api-docs/notification", "/v3/api-docs"))
-                .uri("lb://notification-service"))
+                .uri("http://notification-service:8084"))
             .route("document-openapi", r -> r
                 .path("/v3/api-docs/document")
                 .filters(f -> f.rewritePath("/v3/api-docs/document", "/v3/api-docs"))
-                .uri("lb://document-service"))
+                .uri("http://document-service:8085"))
 
             .build();
     }
