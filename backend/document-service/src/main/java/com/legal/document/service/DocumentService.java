@@ -7,10 +7,16 @@ import com.legal.document.model.CaseDocument.*;
 import com.legal.document.repository.CaseDocumentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.nio.file.*;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -21,48 +27,37 @@ import java.util.UUID;
 public class DocumentService {
 
     private final CaseDocumentRepository documentRepo;
-    private final S3Service s3Service;
-    private final GoogleDriveService driveService;
     private final FileValidationService validationService;
+
+    @Value("${document.storage.path:/app/uploads}")
+    private String storagePath;
+
+    @Value("${document.base-url:http://localhost:8085}")
+    private String baseUrl;
+
+    // ── Upload ─────────────────────────────────────────────────────────────────
 
     @Transactional
     public DocumentResponse uploadDocument(MultipartFile file, DocumentUploadRequest request) throws Exception {
-        // 1. Validar
+        // 1. Validate
         validationService.validate(file);
 
-        // 2. Detectar MIME real
+        // 2. Detect real MIME type
         String mimeType = validationService.detectMimeType(file);
 
         // 3. Checksum
         byte[] bytes = file.getBytes();
-        String checksum = validationService.calculateChecksum(bytes);
+        String checksum = calculateChecksum(bytes);
 
-        // 4. Subir a S3
-        String s3Key = s3Service.uploadFile(file, request.getCaseId(), request.getCaseNumber());
+        // 4. Save to local storage
+        String localKey = saveToLocalStorage(file, request.getCaseId(), request.getCaseNumber());
 
-        // 5. Google Drive (opcional, no bloquea si falla)
-        String driveFileId = null;
-        String driveFolderId = null;
-        try {
-            List<String> existingFolderIds = documentRepo.findDriveFolderIds(request.getCaseId());
-            if (!existingFolderIds.isEmpty()) {
-                driveFolderId = existingFolderIds.get(0);
-            } else {
-                driveFolderId = driveService.createCaseFolder(request.getCaseNumber(), null);
-            }
-            if (driveFolderId != null) {
-                driveFileId = driveService.uploadFileToDrive(file, driveFolderId);
-            }
-        } catch (Exception e) {
-            log.warn("Error Google Drive (no crítico): {}", e.getMessage());
-        }
-
-        // 6. Versión
+        // 5. Version
         int version = request.getPreviousVersionId() != null
             ? documentRepo.getNextVersion(request.getCaseId(), file.getOriginalFilename())
             : 1;
 
-        // 7. Persistir
+        // 6. Persist
         CaseDocument document = CaseDocument.builder()
             .caseId(request.getCaseId())
             .caseNumber(request.getCaseNumber())
@@ -70,10 +65,10 @@ public class DocumentService {
             .originalFileName(file.getOriginalFilename())
             .mimeType(mimeType)
             .fileSize(file.getSize())
-            .s3Key(s3Key)
-            .s3BucketName(s3Service.getBucketName())
-            .googleDriveFileId(driveFileId)
-            .googleDriveFolderId(driveFolderId)
+            .s3Key(localKey)               // reusing s3Key field to store local path
+            .s3BucketName("local-storage") // placeholder
+            .googleDriveFileId(null)
+            .googleDriveFolderId(null)
             .description(request.getDescription())
             .uploadedByUserId(request.getUploadedByUserId())
             .uploadedByName(request.getUploadedByName())
@@ -85,11 +80,13 @@ public class DocumentService {
             .build();
 
         document = documentRepo.save(document);
-        log.info("Documento guardado id={} key={} caso={}", document.getId(),
+        log.info("Document saved id={} key={} case={}", document.getId(),
             document.getDocumentKey(), request.getCaseNumber());
 
         return mapToResponse(document);
     }
+
+    // ── Read ───────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public List<DocumentResponse> getDocumentsByCase(Long caseId) {
@@ -100,27 +97,36 @@ public class DocumentService {
     @Transactional(readOnly = true)
     public DocumentResponse getDocument(Long documentId) {
         CaseDocument doc = documentRepo.findById(documentId)
-            .orElseThrow(() -> new RuntimeException("Documento no encontrado: " + documentId));
+            .orElseThrow(() -> new RuntimeException("Document not found: " + documentId));
         return mapToResponse(doc);
     }
+
+    // ── Delete ─────────────────────────────────────────────────────────────────
 
     @Transactional
     public void deleteDocument(Long documentId, Long requestingUserId) {
         CaseDocument doc = documentRepo.findById(documentId)
-            .orElseThrow(() -> new RuntimeException("Documento no encontrado: " + documentId));
+            .orElseThrow(() -> new RuntimeException("Document not found: " + documentId));
 
-        s3Service.softDeleteFile(doc.getS3Key());
-
-        if (doc.getGoogleDriveFileId() != null) {
-            try { driveService.deleteFile(doc.getGoogleDriveFileId()); }
-            catch (Exception e) { log.warn("Error eliminando de Drive: {}", e.getMessage()); }
+        // Soft delete local file
+        try {
+            Path filePath = Paths.get(storagePath, doc.getS3Key());
+            if (Files.exists(filePath)) {
+                Files.move(filePath,
+                    filePath.resolveSibling("deleted_" + filePath.getFileName()),
+                    StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (Exception e) {
+            log.warn("Could not move file to deleted state: {}", e.getMessage());
         }
 
         doc.setStatus(DocumentStatus.DELETED);
         doc.setDeletedAt(LocalDateTime.now());
         documentRepo.save(doc);
-        log.info("Documento id={} eliminado por userId={}", documentId, requestingUserId);
+        log.info("Document id={} deleted by userId={}", documentId, requestingUserId);
     }
+
+    // ── Stats ──────────────────────────────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public Map<String, Object> getCaseDocumentStats(Long caseId) {
@@ -128,27 +134,52 @@ public class DocumentService {
         long deleted = documentRepo.countByCaseIdAndStatus(caseId, DocumentStatus.DELETED);
         Long totalBytes = documentRepo.getTotalSizeByCaseId(caseId);
         return Map.of(
-            "activeDocuments",   active,
-            "deletedDocuments",  deleted,
-            "totalDocuments",    active + deleted,
-            "totalSize",         totalBytes != null ? totalBytes : 0L,
+            "activeDocuments",    active,
+            "deletedDocuments",   deleted,
+            "totalDocuments",     active + deleted,
+            "totalSize",          totalBytes != null ? totalBytes : 0L,
             "totalSizeFormatted", formatFileSize(totalBytes != null ? totalBytes : 0L)
         );
+    }
+
+    // ── Local Storage ──────────────────────────────────────────────────────────
+
+    private String saveToLocalStorage(MultipartFile file, Long caseId, String caseNumber) throws IOException {
+        String caseFolder = "case_" + caseId + "_" + caseNumber.replaceAll("[^a-zA-Z0-9]", "_");
+        Path directory = Paths.get(storagePath, caseFolder);
+        Files.createDirectories(directory);
+
+        String uniqueFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        Path targetPath = directory.resolve(uniqueFileName);
+        Files.write(targetPath, file.getBytes());
+
+        log.info("File saved locally at: {}", targetPath);
+        return caseFolder + "/" + uniqueFileName;
+    }
+
+    private String generateDownloadUrl(String localKey) {
+        return baseUrl + "/api/documents/download/" + localKey;
+    }
+
+    // ── Checksum ───────────────────────────────────────────────────────────────
+
+    private String calculateChecksum(byte[] bytes) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(bytes);
+            return HexFormat.of().formatHex(hash);
+        } catch (Exception e) {
+            log.warn("Could not calculate checksum: {}", e.getMessage());
+            return UUID.randomUUID().toString();
+        }
     }
 
     // ── Mapping ────────────────────────────────────────────────────────────────
 
     private DocumentResponse mapToResponse(CaseDocument doc) {
         String downloadUrl = null;
-        if (doc.getStatus() == DocumentStatus.ACTIVE) {
-            try { downloadUrl = s3Service.generatePresignedDownloadUrl(doc.getS3Key()); }
-            catch (Exception e) { log.warn("Error generando presigned URL: {}", e.getMessage()); }
-        }
-
-        String driveUrl = null;
-        if (doc.getGoogleDriveFileId() != null) {
-            try { driveUrl = driveService.getFileViewLink(doc.getGoogleDriveFileId()); }
-            catch (Exception e) { log.debug("No se pudo obtener URL Drive: {}", e.getMessage()); }
+        if (doc.getStatus() == DocumentStatus.ACTIVE && doc.getS3Key() != null) {
+            downloadUrl = generateDownloadUrl(doc.getS3Key());
         }
 
         return DocumentResponse.builder()
@@ -168,7 +199,7 @@ public class DocumentService {
             .version(doc.getVersion())
             .previousVersionId(doc.getPreviousVersionId())
             .downloadUrl(downloadUrl)
-            .googleDriveUrl(driveUrl)
+            .googleDriveUrl(null)
             .uploadedAt(doc.getUploadedAt())
             .updatedAt(doc.getUpdatedAt())
             .build();
