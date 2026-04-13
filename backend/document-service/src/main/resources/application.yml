@@ -7,38 +7,36 @@ spring:
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:legal_management_db}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${DB_USER:root}
-    password: ${DB_PASSWORD:}
+    password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${HIBERNATE_DDL_AUTO:update}
     show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
   servlet:
     multipart:
       enabled: true
       max-file-size: 50MB
       max-request-size: 55MB
 
-
 jwt:
   secret: ${JWT_SECRET}
 
-aws:
-  region: ${AWS_REGION:us-east-1}
-  s3:
-    bucket-name: ${AWS_S3_BUCKET}
-    presigned-url-expiration-minutes: 60
-
 document:
+  storage:
+    path: ${DOCUMENT_STORAGE_PATH:/app/uploads}
+  base-url: ${DOCUMENT_BASE_URL:http://localhost:8085}
   allowed-types: pdf,docx,xlsx,doc,xls,png,jpg,jpeg,txt,zip,rar
   max-size-bytes: 52428800
 
@@ -46,4 +44,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health, info, metrics
