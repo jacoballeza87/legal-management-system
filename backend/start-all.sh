@@ -61,6 +61,7 @@ echo "[3/5] 📁 Starting case-service on port 8083..."
 java $JVM_OPTS -jar case-service.jar \
     --server.port=8083 \
     $RABBIT_SAFE \
+    --management.health.rabbit.enabled=false \
     2>&1 | sed 's/^/[CASE] /' &
 CASE_PID=$!
 
@@ -90,6 +91,8 @@ java $JVM_OPTS -jar notification-service.jar \
     --server.port=8085 \
     $RABBIT_SAFE \
     $BEAN_OVERRIDE \
+    --management.health.rabbit.enabled=false \
+    --management.health.mail.enabled=false \
     2>&1 | sed 's/^/[NOTIF] /' &
 NOTIF_PID=$!
 

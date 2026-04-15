@@ -5,10 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
+@ConditionalOnProperty(name = "aws.enabled", havingValue = "true", matchIfMissing = false)
 @RequestMapping("/api/admin/s3")
 @RequiredArgsConstructor
 @Slf4j
