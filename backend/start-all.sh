@@ -2,94 +2,94 @@
 
 echo "═══════════════════════════════════════════════"
 echo "  🏛️  Legal Management System"
-echo "  Starting ALL services — LOGS VISIBLE"
+echo "  Starting ESSENTIAL services only"
 echo "═══════════════════════════════════════════════"
 
-# ── Memory flags (tuned for Railway ~1.5GB container) ──
-JVM_SMALL="-Xmx80m -Xms40m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m"
-JVM_MED="-Xmx96m -Xms48m -XX:+UseSerialGC -XX:MaxMetaspaceSize=64m"
+# ── FIXED memory: more metaspace, less heap ──
+# Each JVM: ~64MB heap + 128MB metaspace + ~30MB overhead ≈ 222MB
+# 4 JVMs × 222MB ≈ 888MB total (fits in Railway)
+JVM_OPTS="-Xmx64m -Xms32m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
 
-# ── RabbitMQ safe flags ──
-RABBIT="--spring.rabbitmq.listener.simple.missing-queues-fatal=false --spring.rabbitmq.connection-timeout=5000"
+# ── Disable RabbitMQ completely ──
 RABBIT_OFF="--spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration"
 
-# ═══════════════════════════════════════════════════
-# Start services with VISIBLE output (prefixed)
-# ═══════════════════════════════════════════════════
-
 echo ""
-echo "[1/6] 🔐 Starting auth-service on port 8081..."
-java $JVM_MED -jar auth-service.jar \
+echo "════════════════════════════════════════"
+echo "  Phase 1: Core services"
+echo "════════════════════════════════════════"
+
+echo "[1/4] 🔐 Starting auth-service on port 8081..."
+java $JVM_OPTS -jar auth-service.jar \
     --server.port=8081 \
     $RABBIT_OFF \
     2>&1 | sed 's/^/[AUTH] /' &
 AUTH_PID=$!
 
-echo "[2/6] 👤 Starting user-service on port 8082..."
-java $JVM_MED -jar user-service.jar \
+# ── Stagger starts to avoid memory spike ──
+echo "⏳ Waiting 20s before next service..."
+sleep 20
+
+echo "[2/4] 👤 Starting user-service on port 8082..."
+java $JVM_OPTS -jar user-service.jar \
     --server.port=8082 \
     $RABBIT_OFF \
     2>&1 | sed 's/^/[USER] /' &
 USER_PID=$!
 
-echo "[3/6] 📁 Starting case-service on port 8083..."
-java $JVM_MED -jar case-service.jar \
+echo "⏳ Waiting 20s before next service..."
+sleep 20
+
+echo "[3/4] 📁 Starting case-service on port 8083..."
+java $JVM_OPTS -jar case-service.jar \
     --server.port=8083 \
     $RABBIT_OFF \
     2>&1 | sed 's/^/[CASE] /' &
 CASE_PID=$!
 
-echo "[4/6] 📄 Starting document-service on port 8084..."
-java $JVM_MED -jar document-service.jar \
-    --server.port=8084 \
-    $RABBIT_OFF \
-    2>&1 | sed 's/^/[DOC] /' &
-DOC_PID=$!
-
-echo "[5/6] 🔔 Starting notification-service on port 8085..."
-java $JVM_SMALL -jar notification-service.jar \
-    --server.port=8085 \
-    $RABBIT_OFF \
-    2>&1 | sed 's/^/[NOTIF] /' &
-NOTIF_PID=$!
-
-# ── Wait longer — 5 JVMs need time ──
+# ── Wait for services to fully initialize ──
 echo ""
-echo "⏳ Waiting 60 seconds for backend services..."
+echo "⏳ Waiting 60s for services to fully start..."
 sleep 60
 
 # ── Health check ──
 echo ""
 echo "🏥 Health check:"
-for port in 8081 8082 8083 8084 8085; do
+for entry in "8081:auth" "8082:user" "8083:case"; do
+    port="${entry%%:*}"
+    name="${entry##*:}"
     STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$port/actuator/health 2>/dev/null)
     if [ "$STATUS" = "200" ]; then
-        echo "   ✅ Port $port — UP"
+        echo "   ✅ $name (port $port) — UP"
     else
-        echo "   ⚠️  Port $port — HTTP $STATUS"
+        echo "   ⚠️  $name (port $port) — HTTP $STATUS"
     fi
 done
 
-# ── Check if any backend process died ──
+# ── Process check ──
 echo ""
 echo "🔍 Process check:"
-for pid_name in "$AUTH_PID:auth" "$USER_PID:user" "$CASE_PID:case" "$DOC_PID:doc" "$NOTIF_PID:notif"; do
-    pid="${pid_name%%:*}"
-    name="${pid_name##*:}"
+for pid_entry in "$AUTH_PID:auth" "$USER_PID:user" "$CASE_PID:case"; do
+    pid="${pid_entry%%:*}"
+    name="${pid_entry##*:}"
     if kill -0 "$pid" 2>/dev/null; then
         echo "   ✅ $name (PID $pid) — ALIVE"
     else
-        echo "   ❌ $name (PID $pid) — DEAD (crashed!)"
+        echo "   ❌ $name (PID $pid) — DEAD"
     fi
 done
 
-# ═══════════════════════════════════════════════════
-# Start API Gateway in FOREGROUND (keeps container alive)
-# ═══════════════════════════════════════════════════
+# ── FREE MEMORY CHECK ──
 echo ""
-echo "[6/6] 🌐 Starting api-gateway on port 8080 (FOREGROUND)..."
+echo "💾 Memory usage:"
+free -m 2>/dev/null || echo "   (free command not available)"
+echo ""
+
+# ════════════════════════════════════════
+# Start API Gateway LAST in FOREGROUND
+# ════════════════════════════════════════
+echo "[4/4] 🌐 Starting api-gateway on port 8080..."
 echo "═══════════════════════════════════════════════"
 
-java $JVM_SMALL -jar api-gateway.jar \
+java $JVM_OPTS -jar api-gateway.jar \
     --server.port=8080 \
     2>&1 | sed 's/^/[GATEWAY] /'
