@@ -5,10 +5,8 @@ echo "  🏛️  Legal Management System"
 echo "  Starting ALL services — staggered"
 echo "═══════════════════════════════════════════════"
 
-# ── Memory: tuned for staggered startup ──
 JVM_OPTS="-Xmx64m -Xms32m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
 
-# ── Let Spring create RabbitTemplate bean, but don't connect ──
 RABBIT_SAFE="--spring.rabbitmq.host=localhost"
 RABBIT_SAFE="$RABBIT_SAFE --spring.rabbitmq.port=5672"
 RABBIT_SAFE="$RABBIT_SAFE --spring.rabbitmq.listener.simple.auto-startup=false"
@@ -16,12 +14,22 @@ RABBIT_SAFE="$RABBIT_SAFE --spring.rabbitmq.listener.direct.auto-startup=false"
 RABBIT_SAFE="$RABBIT_SAFE --spring.rabbitmq.listener.simple.missing-queues-fatal=false"
 RABBIT_SAFE="$RABBIT_SAFE --spring.rabbitmq.connection-timeout=1000"
 
-# ── Fix for document-service bean override conflict ──
 BEAN_OVERRIDE="--spring.main.allow-bean-definition-overriding=true"
+
+# ── Google Drive disabled (dummy values) ──
+GDRIVE_OFF="--google.drive.credentials-path=/dev/null"
+GDRIVE_OFF="$GDRIVE_OFF --google.drive.folder-id=disabled"
+GDRIVE_OFF="$GDRIVE_OFF --google.drive.application-name=legal-system"
+
+# ── AWS S3 disabled (dummy values) ──
+S3_OFF="--aws.s3.bucket=disabled"
+S3_OFF="$S3_OFF --aws.s3.region=us-east-1"
+S3_OFF="$S3_OFF --aws.access-key-id=disabled"
+S3_OFF="$S3_OFF --aws.secret-access-key=disabled"
 
 echo ""
 echo "════════════════════════════════════════"
-echo "  Phase 1: Auth (most critical)"  
+echo "  Phase 1: Auth (most critical)"
 echo "════════════════════════════════════════"
 
 echo "[1/5] 🔐 Starting auth-service on port 8081..."
@@ -69,6 +77,8 @@ java $JVM_OPTS -jar document-service.jar \
     --server.port=8084 \
     $RABBIT_SAFE \
     $BEAN_OVERRIDE \
+    $GDRIVE_OFF \
+    $S3_OFF \
     2>&1 | sed 's/^/[DOC] /' &
 DOC_PID=$!
 
@@ -87,7 +97,7 @@ echo "⏳ Waiting 30s for all services to finish starting..."
 sleep 30
 
 # ══════════════════════════════════════════
-# Health check ALL services
+# Health check
 # ══════════════════════════════════════════
 echo ""
 echo "🏥 Health check:"
