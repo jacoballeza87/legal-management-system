@@ -3,6 +3,7 @@ package com.legal.document.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@ConditionalOnProperty(name = "aws.enabled", havingValue = "true", matchIfMissing = false)
 @RequiredArgsConstructor
 @Slf4j
 public class S3Service {
@@ -28,10 +30,6 @@ public class S3Service {
     @Value("${aws.s3.presigned-url-expiration-minutes:60}")
     private long presignedUrlExpiration;
 
-    /**
-     * Sube un archivo a S3.
-     * Ruta: cases/{caseNumber}/documents/{uuid}/{sanitizedFilename}
-     */
     public String uploadFile(MultipartFile file, Long caseId, String caseNumber) throws Exception {
         String uuid = UUID.randomUUID().toString();
         String s3Key = String.format("cases/%s/documents/%s/%s",
@@ -54,9 +52,6 @@ public class S3Service {
         return s3Key;
     }
 
-    /**
-     * URL pre-firmada para descarga temporal (sin exponer credenciales AWS).
-     */
     public String generatePresignedDownloadUrl(String s3Key) {
         GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
             .signatureDuration(Duration.ofMinutes(presignedUrlExpiration))
@@ -68,9 +63,6 @@ public class S3Service {
         return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 
-    /**
-     * Soft delete: copia a /deleted/ y elimina el original.
-     */
     public void softDeleteFile(String s3Key) {
         String deletedKey = "deleted/" + s3Key;
         try {

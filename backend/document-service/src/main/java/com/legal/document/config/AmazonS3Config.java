@@ -1,6 +1,7 @@
 package com.legal.document.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 @Configuration
+@ConditionalOnProperty(name = "aws.enabled", havingValue = "true", matchIfMissing = false)
 public class AmazonS3Config {
 
     @Value("${aws.access-key}")
