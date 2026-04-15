@@ -18,7 +18,7 @@ RUN mvn dependency:go-offline -B || true
 
 # Copy source code and build
 COPY . .
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -Dmaven.test.skip=true -B
 
 # Stage JARs with clean names
 RUN mkdir -p /staging && \
