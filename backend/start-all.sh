@@ -80,6 +80,8 @@ java $JVM_OPTS -jar document-service.jar \
     $BEAN_OVERRIDE \
     $GDRIVE_OFF \
     $S3_OFF \
+    --google.drive.enabled=false \
+    --aws.enabled=false \
     2>&1 | sed 's/^/[DOC] /' &
 DOC_PID=$!
 
