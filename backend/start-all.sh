@@ -36,6 +36,7 @@ echo "[1/5] 🔐 Starting auth-service on port 8081..."
 java $JVM_OPTS -jar auth-service.jar \
     --server.port=8081 \
     $RABBIT_SAFE \
+    --management.health.redis.enabled=false \
     2>&1 | sed 's/^/[AUTH] /' &
 AUTH_PID=$!
 
@@ -82,6 +83,7 @@ java $JVM_OPTS -jar document-service.jar \
     $S3_OFF \
     --google.drive.enabled=false \
     --aws.enabled=false \
+    --management.health.rabbit.enabled=false \
     2>&1 | sed 's/^/[DOC] /' &
 DOC_PID=$!
 
