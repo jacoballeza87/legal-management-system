@@ -5,7 +5,7 @@ echo "  🏛️  Legal Management System"
 echo "  Starting ALL services — staggered"
 echo "═══════════════════════════════════════════════"
 
-JVM_OPTS="-Xmx40m -Xms12m -XX:MaxMetaspaceSize=80m -XX:CompressedClassSpaceSize=24m -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss256k"
+JVM_OPTS="-Xmx55m -Xms20m -XX:MaxMetaspaceSize=60m -XX:CompressedClassSpaceSize=20m -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss256k -noverify"
 
 # ── DB connection (reads from Railway env vars) ──
 DB_HOST="${DB_HOST:-localhost}"
