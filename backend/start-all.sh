@@ -5,7 +5,8 @@ echo "  🏛️  Legal Management System"
 echo "  Starting ALL services — staggered"
 echo "═══════════════════════════════════════════════"
 
-JVM_OPTS="-Xmx64m -Xms32m -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC -XX:TieredStopAtLevel=1"
+JVM_OPTS="-Xmx40m -Xms12m -XX:MaxMetaspaceSize=80m -XX:CompressedClassSpaceSize=24m -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -Xss256k"
+
 
 RABBIT_SAFE="--spring.rabbitmq.host=localhost"
 RABBIT_SAFE="$RABBIT_SAFE --spring.rabbitmq.port=5672"
