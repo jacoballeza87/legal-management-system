@@ -11,12 +11,12 @@ JVM_OPTS="-Xmx55m -Xms20m -XX:MaxMetaspaceSize=60m -XX:CompressedClassSpaceSize=
 DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-3306}"
 DB_NAME="${DB_NAME:-legal_management_db}"
-DB_USER="${DB_USER:-${MYSQLUSER:-root}}"
-DB_PASSWORD="${DB_PASSWORD:-${MYSQLPASSWORD:-${MYSQL_ROOT_PASSWORD:-root}}}"
+DB_USER="root"
+DB_PASSWORD="root"
 
 DB_ARGS="--spring.datasource.url=jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
-DB_ARGS="$DB_ARGS --spring.datasource.username=${DB_USER:-${MYSQLUSER:-root}}"
-DB_ARGS="$DB_ARGS --spring.datasource.password=${DB_PASSWORD:-${MYSQLPASSWORD:-${MYSQL_ROOT_PASSWORD:-root}}}"
+DB_ARGS="$DB_ARGS --spring.datasource.username=root"
+DB_ARGS="$DB_ARGS --spring.datasource.password=root"
 DB_ARGS="$DB_ARGS --spring.jpa.hibernate.ddl-auto=update"
 DB_ARGS="$DB_ARGS --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver"
 
