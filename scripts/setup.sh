@@ -138,7 +138,7 @@ DB_HOST=localhost
 DB_PORT=3306
 DB_NAME=legal_management_db
 DB_USER=legal_app
-DB_PASSWORD=legal_password
+DB_PASSWORD=QYAWvCkKcszxZLWzNpOddDObcRDJWgVE
 
 # JWT
 JWT_SECRET=change_this_to_a_very_secure_random_string_of_at_least_256_bits

@@ -12,7 +12,7 @@ DB_HOST="${DB_HOST:-localhost}"
 DB_PORT="${DB_PORT:-3306}"
 DB_NAME="${DB_NAME:-legal_management_db}"
 DB_USER="${DB_USER:-${MYSQLUSER:-root}}"
-DB_PASSWORD="${DB_PASSWORD:-${MYSQLPASSWORD:-${MYSQL_ROOT_PASSWORD:-root}}}"
+DB_PASSWORD="${DB_PASSWORD:-${MYSQLPASSWORD:-${MYSQL_ROOT_PASSWORD:-QYAWvCkKcszxZLWzNpOddDObcRDJWgVE}}}"
 
 DB_ARGS="--spring.datasource.url=jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
 DB_ARGS="$DB_ARGS --spring.datasource.username=root"
