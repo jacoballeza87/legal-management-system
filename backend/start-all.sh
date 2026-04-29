@@ -21,7 +21,7 @@ DB_ARGS="$DB_ARGS --spring.jpa.hibernate.ddl-auto=update"
 DB_ARGS="$DB_ARGS --spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver"
 
 # ── Redis connection ──
-REDIS_HOST="${REDIS_HOST:-localhost}"
+REDIS_HOST="${SPRING_RABBITMQ_HOST:-${RABBITMQ_HOST:-localhost}}"
 REDIS_PORT="${REDIS_PORT:-6379}"
 REDIS_PASSWORD="${REDIS_PASSWORD:-}"
 
