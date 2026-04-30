@@ -14,6 +14,11 @@ DB_NAME="${DB_NAME:-legal_management_db}"
 DB_USER="${DB_USER:-${MYSQLUSER:-root}}"
 DB_PASSWORD="${DB_PASSWORD:-${MYSQLPASSWORD:-${MYSQL_ROOT_PASSWORD:-QYAWvCkKcszxZLWzNpOddDObcRDJWgVE}}}"
 
+echo "🔑 DB_USER resolved to: [${DB_USER}]"
+echo "🔑 DB_PASSWORD resolved to: [${DB_PASSWORD}]"
+echo "🔑 MYSQLPASSWORD env: [${MYSQLPASSWORD}]"
+echo "🔑 MYSQL_ROOT_PASSWORD env: [${MYSQL_ROOT_PASSWORD}]"
+
 DB_ARGS="--spring.datasource.url=jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
 DB_ARGS="$DB_ARGS --spring.datasource.username=root"
 DB_ARGS="$DB_ARGS --spring.datasource.password=root"
