@@ -9,7 +9,7 @@ COPY user-service/pom.xml ./user-service/pom.xml
 RUN mvn dependency:go-offline -B -f ./user-service/pom.xml
 
 COPY user-service/src ./user-service/src
-RUN mvn clean package -DskipTests -f ./user-service/pom.xml
+RUN mvn clean package -Dmaven.test.skip=true -f ./user-service/pom.xml
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

@@ -416,7 +416,7 @@ DOCUMENT_SERVICE_PORT=8085
 cd /opt/legal-management-system/backend
 
 # Compilar todo el proyecto
-mvn clean install -DskipTests
+mvn clean install -Dmaven.test.skip=true
 
 # O compilar servicio por servicio
 cd config-server && mvn clean package

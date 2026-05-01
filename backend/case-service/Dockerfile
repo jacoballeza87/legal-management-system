@@ -9,7 +9,7 @@ COPY case-service/pom.xml ./case-service/pom.xml
 RUN mvn dependency:go-offline -B -f ./case-service/pom.xml
 
 COPY case-service/src ./case-service/src
-RUN mvn clean package -DskipTests -f ./case-service/pom.xml
+RUN mvn clean package -Dmaven.test.skip=true -f ./case-service/pom.xml
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

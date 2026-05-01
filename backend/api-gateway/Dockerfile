@@ -9,7 +9,7 @@ COPY api-gateway/pom.xml ./api-gateway/pom.xml
 RUN mvn dependency:go-offline -B -f ./api-gateway/pom.xml
 
 COPY api-gateway/src ./api-gateway/src
-RUN mvn clean package -DskipTests -f ./api-gateway/pom.xml
+RUN mvn clean package -Dmaven.test.skip=true -f ./api-gateway/pom.xml
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

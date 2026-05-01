@@ -9,7 +9,7 @@ COPY notification-service/pom.xml ./notification-service/pom.xml
 RUN mvn dependency:go-offline -B -f ./notification-service/pom.xml
 
 COPY notification-service/src ./notification-service/src
-RUN mvn clean package -DskipTests -f ./notification-service/pom.xml
+RUN mvn clean package -Dmaven.test.skip=true -f ./notification-service/pom.xml
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

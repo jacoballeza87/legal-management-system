@@ -229,7 +229,7 @@ if [ "$compile_backend" = "s" ] || [ "$compile_backend" = "S" ]; then
     if [ -f "backend/pom.xml" ]; then
         print_info "Compilando backend (esto puede tardar varios minutos)..."
         cd backend
-        mvn clean install -DskipTests
+        mvn clean install -Dmaven.test.skip=true
         cd ..
         print_info "✓ Backend compilado exitosamente"
     else

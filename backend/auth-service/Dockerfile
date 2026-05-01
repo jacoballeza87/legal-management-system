@@ -9,7 +9,7 @@ COPY auth-service/pom.xml ./auth-service/pom.xml
 RUN mvn dependency:go-offline -B -f ./auth-service/pom.xml
 
 COPY auth-service/src ./auth-service/src
-RUN mvn clean package -DskipTests -f ./auth-service/pom.xml
+RUN mvn clean package -Dmaven.test.skip=true -f ./auth-service/pom.xml
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app

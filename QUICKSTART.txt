@@ -263,7 +263,7 @@ docker-compose down -v
 mvn clean install
 
 # Compilar sin tests
-mvn clean install -DskipTests
+mvn clean install -Dmaven.test.skip=true
 
 # Ejecutar tests
 mvn test
