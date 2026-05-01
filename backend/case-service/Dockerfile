@@ -5,14 +5,14 @@ WORKDIR /app
 COPY pom.xml ./pom.xml
 
 # Servicio específico
-COPY case-serivce/pom.xml ./case-serivce/pom.xml
-RUN mvn dependency:go-offline -B -f ./case-serivce/pom.xml
+COPY case-service/pom.xml ./case-service/pom.xml
+RUN mvn dependency:go-offline -B -f ./case-service/pom.xml
 
-COPY case-serivce/src ./case-serivce/src
-RUN mvn clean package -DskipTests -f ./case-serivce/pom.xml
+COPY case-service/src ./case-service/src
+RUN mvn clean package -DskipTests -f ./case-service/pom.xml
 
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
-COPY --from=build /app/case-serivce/target/*.jar app.jar
+COPY --from=build /app/case-service/target/*.jar app.jar
 EXPOSE 8083
 ENTRYPOINT ["java", "-jar", "app.jar"]
