@@ -29,4 +29,9 @@ public class RabbitMQConfig {
         return new Queue("user.deleted.queue", true);
     }
 
+    @Bean
+    public Queue documentUploadedQueue() {
+        return new Queue("document.uploaded.queue", true);
+    }
+
 }
