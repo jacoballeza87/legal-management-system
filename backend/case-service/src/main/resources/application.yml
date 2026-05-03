@@ -14,10 +14,10 @@ spring:
       minimum-idle: 3
 
   rabbitmq:
-    host: ${RABBITMQ_HOST:localhost}
-    port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    host: rabbitmq.railway.internal
+    port: 5672
+    username: guest
+    password: guest
 
   jpa:
     hibernate:

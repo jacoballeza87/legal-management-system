@@ -24,5 +24,9 @@ public class RabbitMQConfig {
                 .to(exchange)
                 .with("case.created");
     }
+    @Bean
+    public Queue userDeletedQueue() {
+        return new Queue("user.deleted.queue", true);
+    }
 
 }
