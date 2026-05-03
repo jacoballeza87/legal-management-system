@@ -36,6 +36,10 @@ public class RabbitMQConfig implements RabbitListenerConfigurer {
     public Queue userDeletedQueue() {
         return new Queue("user.deleted.queue", true);
     }
+    @Bean
+    public Queue documentUploadedQueue() {
+    return QueueBuilder.durable("document.uploaded.queue").build();
+    V}
 
     @Bean
     public Queue documentUploadedQueue() {

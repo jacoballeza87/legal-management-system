@@ -14,6 +14,9 @@ spring:
       minimum-idle: 3
 
   rabbitmq:
+    listener:
+      simple:
+        missing-queues-fatal: false
     host: rabbitmq.railway.internal
     port: 5672
     username: guest
