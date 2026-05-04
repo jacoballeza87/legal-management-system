@@ -38,11 +38,6 @@ public class RabbitMQConfig implements RabbitListenerConfigurer {
     }
     @Bean
     public Queue documentUploadedQueue() {
-    return QueueBuilder.durable("document.uploaded.queue").build();
-    V}
-
-    @Bean
-    public Queue documentUploadedQueue() {
         return new Queue("document.uploaded.queue", true);
     }
 
