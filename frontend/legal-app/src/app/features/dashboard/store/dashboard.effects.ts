@@ -1,37 +1,43 @@
 import { Injectable } from '@angular/core';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
-import { forkJoin, of } from 'rxjs';
-import { switchMap, map, catchError } from 'rxjs/operators';
-import { DashboardService } from '../dashboard.service';
+import { HttpClient } from '@angular/common/http';
+import { catchError, map, mergeMap, of } from 'rxjs';
 import * as A from './dashboard.actions';
+import { environment } from '../../../../environments/environment';
 
 @Injectable()
 export class DashboardEffects {
-  constructor(private actions$: Actions, private svc: DashboardService) {}
 
-  load$ = createEffect(() => this.actions$.pipe(
-    ofType(A.loadDashboard, A.refreshDashboard),
-    switchMap(() =>
-      forkJoin({
-        stats:         this.svc.getDashboardStats(),
-        recentCases:   this.svc.getRecentCases(6),
-        notifications: this.svc.getRecentNotifications(5)
-      }).pipe(
-        map(d => A.loadDashboardSuccess(d)),
-        catchError(err => of(A.loadDashboardFailure({
-          error: err.error?.message || 'Error cargando el dashboard'
-        })))
+  private base = environment.apiUrl;
+
+  loadDashboard$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(A.loadDashboard, A.refreshDashboard),
+      mergeMap(() =>
+        this.http.get<any>(`${this.base}/cases/stats`).pipe(
+          map(data => A.loadDashboardSuccess({
+            stats:         data.stats         ?? {},
+            recentCases:   data.recentCases   ?? [],
+            notifications: data.notifications ?? [],
+            casesByStatus: data.casesByStatus ?? {},
+          })),
+          catchError(err => of(A.loadDashboardFailure({ error: err.message ?? 'Error loading dashboard' })))
+        )
       )
     )
-  ));
+  );
 
-  activity$ = createEffect(() => this.actions$.pipe(
-    ofType(A.loadActivityFeed),
-    switchMap(() =>
-      this.svc.getActivityFeed(10).pipe(
-        map(items => A.loadActivityFeedSuccess({ items })),
-        catchError(() => of(A.loadActivityFeedSuccess({ items: [] })))
+  loadActivity$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(A.loadActivityFeed),
+      mergeMap(() =>
+        this.http.get<any[]>(`${this.base}/cases/activity`).pipe(
+          map(activity => A.loadActivityFeedSuccess({ activity: activity ?? [] })),
+          catchError(() => of(A.loadActivityFeedSuccess({ activity: [] })))
+        )
       )
     )
-  ));
+  );
+
+  constructor(private actions$: Actions, private http: HttpClient) {}
 }

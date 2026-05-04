@@ -1,22 +1,25 @@
 import { createAction, props } from '@ngrx/store';
-import { CaseStats, Case, Notification } from '../../../core/models/index';
-import { ActivityItem } from '../dashboard.service';
 
-export const loadDashboard    = createAction('[Dashboard] Load');
-export const refreshDashboard = createAction('[Dashboard] Refresh');
-export const loadActivityFeed = createAction('[Dashboard] Load Activity');
+export const loadDashboard = createAction('[Dashboard] Load Dashboard');
+export const refreshDashboard = createAction('[Dashboard] Refresh Dashboard');
+export const loadActivityFeed = createAction('[Dashboard] Load Activity Feed');
 
 export const loadDashboardSuccess = createAction(
-  '[Dashboard] Load Success',
-  props<{ stats: CaseStats; recentCases: Case[]; notifications: Notification[] }>()
-);
-
-export const loadDashboardFailure = createAction(
-  '[Dashboard] Load Failure',
-  props<{ error: string }>()
+  '[Dashboard] Load Dashboard Success',
+  props<{
+    stats: any;
+    recentCases: any[];
+    notifications: any[];
+    casesByStatus: Record<string, number>;
+  }>()
 );
 
 export const loadActivityFeedSuccess = createAction(
-  '[Dashboard] Activity Success',
-  props<{ items: ActivityItem[] }>()
+  '[Dashboard] Load Activity Feed Success',
+  props<{ activity: any[] }>()
+);
+
+export const loadDashboardFailure = createAction(
+  '[Dashboard] Load Dashboard Failure',
+  props<{ error: string }>()
 );
