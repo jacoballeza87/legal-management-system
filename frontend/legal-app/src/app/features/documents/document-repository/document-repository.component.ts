@@ -11,7 +11,7 @@ import {
   selectActiveCategoryFilter, selectTotalElements, selectError
 } from '../../../store/documents/selectors/documents.selectors';
 import {
-  CaseDocument, DocumentCategory, CATEGORY_LABELS, CATEGORY_ICONS
+  CaseDocument, DocumentCategory, CATEGORY_LABELS
 } from '../../../core/models/document.model';
 
 @Component({

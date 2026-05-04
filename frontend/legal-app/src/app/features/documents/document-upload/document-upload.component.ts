@@ -130,7 +130,7 @@ import {
         <!-- Aún hay pendientes -->
         <ng-container *ngIf="!(allDone$ | async)">
           <span class="queue-summary" *ngIf="queue$ | async as q">
-            {{ q.filter(i=>i.status==='pending').length }} archivos pendientes
+            {{ getPendingCount(q) }} archivos pendientes
           </span>
           <button class="btn btn-gold"
                   [disabled]="isUploading$ | async"
@@ -167,6 +167,11 @@ export class DocumentUploadComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {}
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
+
+  // FIX: lógica movida al componente — Angular no permite === en interpolación {{ }}
+  getPendingCount(queue: UploadQueueItem[]): number {
+    return queue.filter(i => i.status === 'pending').length;
+  }
 
   onFilesSelected(files: File[]): void {
     const items: UploadQueueItem[] = files.map(file => ({
@@ -219,7 +224,6 @@ export class DocumentUploadComponent implements OnInit, OnDestroy {
     this.store.dispatch(DocumentsActions.uploadAll());
   }
 
-  // ── Helpers ─────────────────────────────────────────────────────────
   getCategoryLabel(cat: DocumentCategory): string { return CATEGORY_LABELS[cat] ?? cat; }
 
   getFileIcon(filename: string): string {
