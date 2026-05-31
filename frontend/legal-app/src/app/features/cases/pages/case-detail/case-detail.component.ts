@@ -5,12 +5,12 @@ import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { CasesActions } from '../../../store/cases/actions/cases.actions';
+import { CasesActions } from '../../../../store/cases/actions/cases.actions';
 import {
   selectSelectedCase, selectLoadingDetail, selectError,
   selectVersionsByCaseId
-} from '../../../store/cases/selectors/cases.selectors';
-import { CreateVersionRequest } from '../../../core/models/case.model';
+} from '../../../../store/cases/selectors/cases.selectors';
+import { CreateVersionRequest } from '../../../../core/models/case.model';
 
 @Component({
   selector: 'app-case-detail',

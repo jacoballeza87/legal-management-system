@@ -5,12 +5,12 @@ import { Store } from '@ngrx/store';
 import { Subject, combineLatest } from 'rxjs';
 import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { FormControl } from '@angular/forms';
-import { CasesActions } from '../../../store/cases/actions/cases.actions';
+import { CasesActions } from '../../../../store/cases/actions/cases.actions';
 import {
   selectAllCases, selectStats, selectLoading, selectFilters,
   selectTotalElements, selectTotalPages, selectViewMode, selectError
-} from '../../../store/cases/selectors/cases.selectors';
-import { CaseStatus, CasePriority, CaseType } from '../../../core/models/case.model';
+} from '../../../../store/cases/selectors/cases.selectors';
+import { CaseStatus, CasePriority, CaseType } from '../../../../core/models/case.model';
 
 @Component({
   selector: 'app-case-list',
