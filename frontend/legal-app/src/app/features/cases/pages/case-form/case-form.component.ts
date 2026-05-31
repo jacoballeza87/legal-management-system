@@ -5,9 +5,9 @@ import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { takeUntil, filter } from 'rxjs/operators';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { CasesActions } from '../../../store/cases/actions/cases.actions';
-import { selectSelectedCase, selectLoadingCreate, selectError } from '../../../store/cases/selectors/cases.selectors';
-import { CaseType, CasePriority, CreateCaseRequest, UpdateCaseRequest } from '../../../core/models/case.model';
+import { CasesActions } from '../../../../store/cases/actions/cases.actions';
+import { selectSelectedCase, selectLoadingCreate, selectError } from '../../../../store/cases/selectors/cases.selectors';
+import { CaseType, CasePriority, CreateCaseRequest, UpdateCaseRequest } from '../../../../core/models/case.model';
 
 @Component({
   selector: 'app-case-form',
