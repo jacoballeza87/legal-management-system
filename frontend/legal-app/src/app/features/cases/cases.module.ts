@@ -9,10 +9,10 @@ import { EffectsModule } from '@ngrx/effects';
 import { casesReducer } from '../../store/cases/reducers/cases.reducer';
 import { CasesEffects } from '../../store/cases/effects/cases.effects';
 
-import { CaseListComponent }   from './case-list/case-list.component';
+import { CaseListComponent }   from './pages/case-list/case-list.component';
 import { CaseKanbanComponent } from './case-kanban/case-kanban.component';
-import { CaseDetailComponent } from './case-detail/case-detail.component';
-import { CaseFormComponent }   from './case-form/case-form.component';
+import { CaseDetailComponent } from './pages/case-detail/case-detail.component';
+import { CaseFormComponent }   from './pages/case-form/case-form.component';
 
 // ── Guards ──────────────────────────────────────────────────────────
 import { AuthGuard } from '../../core/guards/auth.guard';
