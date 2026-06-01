@@ -46,7 +46,7 @@ export class OauthCallbackComponent implements OnInit {
     this.store.select(selectAuthError).pipe(takeUntil(this.destroy$)).subscribe(err => {
       if (err) {
         this.status = 'error';
-        this.errorMessage = err;
+        this.errorMessage = typeof err === 'string' ? err : 'An error occurred';
       }
     });
 
@@ -68,3 +68,4 @@ export class OauthCallbackComponent implements OnInit {
 
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 }
+
