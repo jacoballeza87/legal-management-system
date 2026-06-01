@@ -83,7 +83,7 @@ class UserServiceTest {
         when(userMapper.toEntity(any(CreateUserRequest.class))).thenReturn(testUser);
         when(roleRepository.findByName("USER")).thenReturn(Optional.of(new Role()));
         when(userRepository.save(any())).thenReturn(testUser);
-        when(userMapper.toDTO(any())).thenReturn(testUserDTO);
+        when(userMapper.toDTO(any(User.class))).thenReturn(testUserDTO);
 
         UserDTO result = userService.createUser(request, 1L);
 
@@ -108,7 +108,7 @@ class UserServiceTest {
     @DisplayName("Actualizar estado del usuario")
     void updateStatus_Success() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
-        when(userMapper.toDTO(any())).thenReturn(testUserDTO);
+        when(userMapper.toDTO(any(User.class))).thenReturn(testUserDTO);
 
         userService.updateStatus(1L, User.UserStatus.INACTIVE);
 

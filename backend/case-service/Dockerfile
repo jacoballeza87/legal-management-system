@@ -1,4 +1,4 @@
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Parent POM
@@ -11,7 +11,7 @@ RUN mvn dependency:go-offline -B -f ./case-service/pom.xml
 COPY case-service/src ./case-service/src
 RUN mvn clean package -Dmaven.test.skip=true -f ./case-service/pom.xml
 
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /app/case-service/target/*.jar app.jar
 EXPOSE 8083

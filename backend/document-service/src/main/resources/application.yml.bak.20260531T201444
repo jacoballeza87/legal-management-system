@@ -1,0 +1,47 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: document-service
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${HIBERNATE_DDL_AUTO:update}
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 55MB
+
+jwt:
+  secret: ${JWT_SECRET}
+
+document:
+  storage:
+    path: ${DOCUMENT_STORAGE_PATH:/app/uploads}
+  base-url: ${DOCUMENT_BASE_URL:http://localhost:8085}
+  allowed-types: pdf,docx,xlsx,doc,xls,png,jpg,jpeg,txt,zip,rar
+  max-size-bytes: 52428800
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
