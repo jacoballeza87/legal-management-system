@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Store } from '@ngrx/store';
+import { Store } from '@angular/store';
 import { Subject, takeUntil } from 'rxjs';
 import * as AuthActions from '../store/auth.actions';
 import { selectAuthError, selectIsAuthenticated } from '../store/auth.selectors';
@@ -46,7 +46,7 @@ export class OauthCallbackComponent implements OnInit {
     this.store.select(selectAuthError).pipe(takeUntil(this.destroy$)).subscribe(err => {
       if (err) {
         this.status = 'error';
-        this.errorMessage = err;
+        this.errorMessage = typeof err === 'string' ? err : 'Error de autenticación';
       }
     });
 
@@ -68,3 +68,4 @@ export class OauthCallbackComponent implements OnInit {
 
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 }
+

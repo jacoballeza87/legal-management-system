@@ -19,6 +19,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   loading$ = this.store.select(selectAuthLoading);
   error$   = this.store.select(selectAuthError);
   resetSuccess = false;
+  currentYear = new Date().getFullYear();
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -61,3 +62,4 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 }
+
