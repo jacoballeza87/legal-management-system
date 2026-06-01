@@ -31,6 +31,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   greeting       = this.getGreeting();
   currentDate    = new Date();
 
+  get currentUserFirstName(): string {
+    return this.currentUser?.name?.split(' ')[0] ?? '';
+  }
+
   private destroy$ = new Subject<void>();
 
   constructor(

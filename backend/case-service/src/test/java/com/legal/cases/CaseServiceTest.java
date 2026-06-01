@@ -2,7 +2,7 @@ package com.legal.cases;
 
 import com.legal.cases.dto.*;
 import com.legal.cases.exception.CaseNotFoundException;
-import com.legal.cases.kafka.CaseEventProducer;
+import com.legal.cases.events.CaseEventProducer;
 import com.legal.cases.mapper.CaseMapper;
 import com.legal.cases.model.Case;
 import com.legal.cases.repository.*;
@@ -81,7 +81,7 @@ class CaseServiceTest {
         when(qrCodeService.generateQRCodeBase64(anyString(), anyLong())).thenReturn("data:image/png;base64,abc");
         when(caseRepository.save(any())).thenReturn(testCase);
         when(versionRepository.save(any())).thenReturn(null);
-        when(caseMapper.toDTO(any())).thenReturn(testCaseDTO);
+        when(caseMapper.toDTO(any(Case.class))).thenReturn(testCaseDTO);
 
         CaseDTO result = caseService.createCase(request, 10L);
 
@@ -95,7 +95,7 @@ class CaseServiceTest {
     void changeStatus_PublishesEvent() {
         when(caseRepository.findById(1L)).thenReturn(Optional.of(testCase));
         when(caseRepository.save(any())).thenReturn(testCase);
-        when(caseMapper.toDTO(any())).thenReturn(testCaseDTO);
+        when(caseMapper.toDTO(any(Case.class))).thenReturn(testCaseDTO);
 
         caseService.changeStatus(1L, Case.CaseStatus.UPDATED, 10L);
 

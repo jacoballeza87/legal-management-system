@@ -1,0 +1,64 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: notification-service
+  datasource:
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: ${HIBERNATE_DDL_AUTO:update}
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+
+  mail:
+    host: ${MAIL_HOST:email-smtp.us-east-1.amazonaws.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+
+jwt:
+  secret: ${JWT_SECRET}
+
+aws:
+  ses:
+    region: ${AWS_REGION:us-east-1}
+    from-email: ${SES_FROM_EMAIL:noreply@legalapp.com}
+    from-name: "Legal Management System"
+
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+  from-number: ${TWILIO_PHONE_NUMBER:}
+  enabled: ${TWILIO_ENABLED:false}
+
+notification:
+  inactivity:
+    threshold-days: 7
+    check-cron: "0 0 8 * * MON-FRI"
+  retry:
+    max-attempts: 3
+    delay-ms: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics

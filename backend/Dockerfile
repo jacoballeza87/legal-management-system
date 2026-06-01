@@ -1,7 +1,7 @@
 # ══════════════════════════════════════════════════
 # STAGE 1: Build ALL modules
 # ══════════════════════════════════════════════════
-FROM maven:3.9.6-eclipse-temurin-17 AS build
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Copy parent POM first (Docker cache layer)
@@ -32,7 +32,7 @@ RUN mkdir -p /staging && \
 # ══════════════════════════════════════════════════
 # STAGE 2: Runtime — lightweight image
 # ══════════════════════════════════════════════════
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Install bash (Alpine uses sh by default)

@@ -16,6 +16,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   form!: FormGroup;
   showPassword = false;
+  currentYear = new Date().getFullYear();
   loading$ = this.store.select(selectAuthLoading);
   error$   = this.store.select(selectAuthError);
   resetSuccess = false;
