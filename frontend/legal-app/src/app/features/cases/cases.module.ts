@@ -13,6 +13,7 @@ import { CaseListComponent }   from './pages/case-list/case-list.component';
 import { CaseKanbanComponent } from './case-kanban/case-kanban.component';
 import { CaseDetailComponent } from './pages/case-detail/case-detail.component';
 import { CaseFormComponent }   from './pages/case-form/case-form.component';
+import { ReplacePipe } from '../../shared/pipes/replace.pipe';
 
 // ── Guards ──────────────────────────────────────────────────────────
 import { AuthGuard } from '../../core/guards/auth.guard';
@@ -49,6 +50,7 @@ const routes: Routes = [
     CaseKanbanComponent,
     CaseDetailComponent,
     CaseFormComponent,
+    ReplacePipe,
   ],
   imports: [
     CommonModule,
