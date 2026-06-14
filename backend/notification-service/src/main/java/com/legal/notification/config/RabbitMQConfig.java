@@ -21,6 +21,13 @@ public class RabbitMQConfig implements RabbitListenerConfigurer {
         this.connectionFactory = connectionFactory;
     }
 
+    public static final String CASE_EVENTS_QUEUE = "case.events.queue";
+
+    @Bean
+    public Queue caseEventsQueue() {
+        return new Queue(CASE_EVENTS_QUEUE, true);
+    }
+
     @Bean
     public TopicExchange legalExchange() {
         return new TopicExchange("legal.exchange");
