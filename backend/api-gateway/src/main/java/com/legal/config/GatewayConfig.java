@@ -72,6 +72,11 @@ public class GatewayConfig {
     }
 
     // ── Rate Limiter: 20 req/seg por defecto ──────────────────────────────────
+    // ÚNICO RedisRateLimiter de toda la app — construido por Spring (inyecta
+    // ReactiveStringRedisTemplate + RedisScript internamente). Todas las rutas
+    // lo reutilizan; NUNCA instanciar RedisRateLimiter con "new" fuera de un
+    // @Bean gestionado por Spring, esa variante no queda inicializada y truena
+    // en tiempo de ejecución con IllegalStateException dentro de isAllowed().
     @Bean
     @Primary
     public RedisRateLimiter defaultRateLimiter() {
@@ -91,7 +96,7 @@ public class GatewayConfig {
                     .stripPrefix(2)
                     .addRequestHeader("X-Gateway-Source", "legal-gateway")
                     .requestRateLimiter(c -> c
-                        .setRateLimiter(new RedisRateLimiter(5, 10))
+                        .setRateLimiter(defaultRateLimiter)
                         .setKeyResolver(ipKeyResolver()))
                     .circuitBreaker(c -> c
                         .setName("auth-cb")
