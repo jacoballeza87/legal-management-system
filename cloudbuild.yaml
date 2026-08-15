@@ -1,0 +1,63 @@
+# IMPORTANTE: este cloudbuild.yaml debe correrse con el directorio backend/ del repo
+# como contexto de build (dir: 'backend'), no desde auth-service/ suelto.
+# Colócalo en la raíz del repo o ajusta el paso "dir" según donde lo coloques.
+
+substitutions:
+  _SERVICE_NAME: auth-service
+  _REGION: us-central1
+  _REPO: lms-services
+  _CLOUDSQL_PUBLIC_IP: "34.41.188.59"
+
+steps:
+  # 1. Build de la imagen — contexto = backend/, Dockerfile dentro de auth-service/
+  - name: 'gcr.io/cloud-builders/docker'
+    dir: 'backend'
+    args:
+      - 'build'
+      - '-f'
+      - 'auth-service/Dockerfile'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:$SHORT_SHA'
+      - '-t'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest'
+      - '.'
+
+  # 2. Push a Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '--all-tags'
+      - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}'
+
+  # 3. Deploy a Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:$SHORT_SHA'
+      - '--region=${_REGION}'
+      - '--platform=managed'
+      - '--port=8081'
+      - '--memory=1Gi'
+      - '--cpu=1'
+      - '--min-instances=0'
+      - '--max-instances=5'
+      - '--service-account=lms-auth-sa@$PROJECT_ID.iam.gserviceaccount.com'
+      # SPRING_RABBITMQ_URI acepta la URL completa que da CloudAMQP
+      # (amqps://usuario:pass@host/vhost) — Spring Boot la parsea sola, no hace falta
+      # separar host/user/pass en variables distintas.
+      - '--set-secrets=DB_PASSWORD=auth-db-password:latest,JWT_SECRET=auth-jwt-secret:latest,SPRING_RABBITMQ_URI=cloudamqp-url:latest,REDIS_HOST=upstash-redis-host:latest,REDIS_PASSWORD=upstash-redis-password:latest'
+      # SPRING_DATASOURCE_URL sobrescribe por completo la propiedad spring.datasource.url
+      # del application.yml (que trae useSSL=false fijo) — sin tocar código.
+      - '--set-env-vars=SPRING_DATASOURCE_URL=jdbc:mysql://${_CLOUDSQL_PUBLIC_IP}:3306/legal_management_db?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true,DB_USER=root,HIBERNATE_DDL_AUTO=update'
+      # Sin --allow-unauthenticated mientras pruebas: usa
+      # gcloud run services proxy auth-service --region=us-central1 para probar localmente
+
+images:
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:$SHORT_SHA'
+  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
