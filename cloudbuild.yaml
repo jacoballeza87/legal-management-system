@@ -1,35 +1,28 @@
-# IMPORTANTE: este cloudbuild.yaml debe correrse con el directorio backend/ del repo
-# como contexto de build (dir: 'backend'), no desde auth-service/ suelto.
-# Colócalo en la raíz del repo o ajusta el paso "dir" según donde lo coloques.
-
 substitutions:
-  _SERVICE_NAME: auth-service
+  _SERVICE_NAME: user-service
   _REGION: us-central1
   _REPO: lms-services
   _CLOUDSQL_PUBLIC_IP: "34.41.188.59"
 
 steps:
-  # 1. Build de la imagen — contexto = backend/, Dockerfile dentro de auth-service/
   - name: 'gcr.io/cloud-builders/docker'
     dir: 'backend'
     args:
       - 'build'
       - '-f'
-      - 'auth-service/Dockerfile'
+      - 'user-service/Dockerfile'
       - '-t'
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:$SHORT_SHA'
       - '-t'
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:latest'
       - '.'
 
-  # 2. Push a Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - '--all-tags'
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}'
 
-  # 3. Deploy a Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
@@ -39,21 +32,16 @@ steps:
       - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:$SHORT_SHA'
       - '--region=${_REGION}'
       - '--platform=managed'
-      - '--port=8081'
+      - '--port=8082'
       - '--memory=1Gi'
       - '--cpu=1'
       - '--min-instances=0'
       - '--max-instances=5'
-      - '--service-account=lms-auth-sa@$PROJECT_ID.iam.gserviceaccount.com'
-      # SPRING_RABBITMQ_URI acepta la URL completa que da CloudAMQP
-      # (amqps://usuario:pass@host/vhost) — Spring Boot la parsea sola.
-      # SPRING_DATA_REDIS_URL acepta la URL completa de Upstash con esquema rediss://
-      # (TLS). SPRING_DATA_REDIS_SSL_ENABLED se agrega por si la versión de Spring Boot
-      # no activa TLS automáticamente solo por el esquema de la URL.
-      - '--set-secrets=DB_PASSWORD=auth-db-password:latest,JWT_SECRET=auth-jwt-secret:latest,SPRING_RABBITMQ_URI=cloudamqp-url:latest,SPRING_DATA_REDIS_URL=upstash-redis-url:latest'
-      - '--set-env-vars=SPRING_DATASOURCE_URL=jdbc:mysql://${_CLOUDSQL_PUBLIC_IP}:3306/legal_management_db?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true,DB_USER=root,HIBERNATE_DDL_AUTO=update,SPRING_DATA_REDIS_SSL_ENABLED=true'
-      # Sin --allow-unauthenticated mientras pruebas: usa
-      # gcloud run services proxy auth-service --region=us-central1 para probar localmente
+      - '--service-account=lms-user-sa@$PROJECT_ID.iam.gserviceaccount.com'
+      # user-service NO usa Redis ni RabbitMQ (aunque el pom.xml no los declara,
+      # así que no se pasan esos secretos aquí).
+      - '--set-secrets=DB_PASSWORD=auth-db-password:latest,JWT_SECRET=auth-jwt-secret:latest'
+      - '--set-env-vars=SPRING_DATASOURCE_URL=jdbc:mysql://${_CLOUDSQL_PUBLIC_IP}:3306/legal_management_db?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true,DB_USER=root,HIBERNATE_DDL_AUTO=update'
 
 images:
   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:$SHORT_SHA'
