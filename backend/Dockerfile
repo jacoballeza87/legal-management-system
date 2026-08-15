@@ -1,59 +1,24 @@
-# ══════════════════════════════════════════════════
-# STAGE 1: Build ALL modules
-# ══════════════════════════════════════════════════
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+# ---------- Etapa 1: build ----------
+FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy parent POM first (Docker cache layer)
+# Copiamos primero el pom.xml para aprovechar la cache de capas de Docker
 COPY pom.xml .
-COPY api-gateway/pom.xml api-gateway/pom.xml
-COPY auth-service/pom.xml auth-service/pom.xml
-COPY user-service/pom.xml user-service/pom.xml
-COPY case-service/pom.xml case-service/pom.xml
-COPY document-service/pom.xml document-service/pom.xml
-COPY notification-service/pom.xml notification-service/pom.xml
+RUN mvn dependency:go-offline -B
 
-# Download dependencies (cached unless POMs change)
-RUN mvn dependency:go-offline -B || true
+# Ahora copiamos el resto del código y compilamos
+COPY src ./src
+RUN mvn clean package -DskipTests -B
 
-# Copy source code and build
-COPY . .
-RUN mvn clean package -Dmaven.test.skip=true -B
-
-# Stage JARs with clean names
-RUN mkdir -p /staging && \
-    find api-gateway/target -name "*.jar" ! -name "*-plain*" ! -name "*original*" -type f | head -1 | xargs -I {} cp {} /staging/api-gateway.jar && \
-    find auth-service/target -name "*.jar" ! -name "*-plain*" ! -name "*original*" -type f | head -1 | xargs -I {} cp {} /staging/auth-service.jar && \
-    find user-service/target -name "*.jar" ! -name "*-plain*" ! -name "*original*" -type f | head -1 | xargs -I {} cp {} /staging/user-service.jar && \
-    find case-service/target -name "*.jar" ! -name "*-plain*" ! -name "*original*" -type f | head -1 | xargs -I {} cp {} /staging/case-service.jar && \
-    find document-service/target -name "*.jar" ! -name "*-plain*" ! -name "*original*" -type f | head -1 | xargs -I {} cp {} /staging/document-service.jar && \
-    find notification-service/target -name "*.jar" ! -name "*-plain*" ! -name "*original*" -type f | head -1 | xargs -I {} cp {} /staging/notification-service.jar
-
-# ══════════════════════════════════════════════════
-# STAGE 2: Runtime — lightweight image
-# ══════════════════════════════════════════════════
-FROM eclipse-temurin:21-jre-alpine
+# ---------- Etapa 2: runtime ----------
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Install bash (Alpine uses sh by default)
-RUN apk add --no-cache bash curl
+# Copiamos solo el jar generado en la etapa anterior (imagen final mucho más liviana)
+COPY --from=build /app/target/*.jar app.jar
 
-# Copy all service JARs
-COPY --from=build /staging/api-gateway.jar .
-COPY --from=build /staging/auth-service.jar .
-COPY --from=build /staging/user-service.jar .
-COPY --from=build /staging/case-service.jar .
-COPY --from=build /staging/document-service.jar .
-COPY --from=build /staging/notification-service.jar .
-
-# Copy startup script
-COPY start-all.sh .
-RUN chmod +x start-all.sh
-
-# Create directories
-RUN mkdir -p /app/uploads /app/logs
-
-# Expose gateway port
+# Cloud Run inyecta la variable PORT; Spring Boot debe escuchar en ese puerto
+ENV PORT=8080
 EXPOSE 8080
 
-ENTRYPOINT ["./start-all.sh"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
