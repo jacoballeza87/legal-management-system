@@ -78,10 +78,21 @@ public class GatewayConfig {
         return new RedisRateLimiter(20, 40);
     }
 
+    // ── Rate Limiter específico para auth (más estricto: 5 req/seg) ───────────
+    // IMPORTANTE: debe ser un @Bean, no instanciarse con "new" dentro del
+    // RouteLocator — RedisRateLimiter necesita que Spring le inyecte el
+    // template de Redis y el script Lua; instanciado a mano esas dependencias
+    // quedan null y truena con NPE en el primer request real (bug original).
+    @Bean
+    public RedisRateLimiter authRateLimiter() {
+        return new RedisRateLimiter(5, 10);
+    }
+
     // ── RUTAS ─────────────────────────────────────────────────────────────────
     @Bean
     public RouteLocator routes(RouteLocatorBuilder builder,
-                               @Qualifier("defaultRateLimiter") RedisRateLimiter defaultRateLimiter) {
+                               @Qualifier("defaultRateLimiter") RedisRateLimiter defaultRateLimiter,
+                               @Qualifier("authRateLimiter") RedisRateLimiter authRateLimiter) {
         return builder.routes()
 
             // ── AUTH SERVICE ─────────────────────────────────────────────────
@@ -91,7 +102,7 @@ public class GatewayConfig {
                     .stripPrefix(2)
                     .addRequestHeader("X-Gateway-Source", "legal-gateway")
                     .requestRateLimiter(c -> c
-                        .setRateLimiter(new RedisRateLimiter(5, 10))
+                        .setRateLimiter(authRateLimiter)
                         .setKeyResolver(ipKeyResolver()))
                     .circuitBreaker(c -> c
                         .setName("auth-cb")
