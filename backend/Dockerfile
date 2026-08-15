@@ -1,33 +1,24 @@
-# ---------- Etapa 1: build ----------
-FROM maven:3.9-eclipse-temurin-17 AS build
+# Build context: backend/ (proyecto Maven multi-módulo)
+# docker build -f user-service/Dockerfile -t user-service .
+
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copiamos el POM padre y el pom.xml de CADA módulo (Maven necesita verlos
-# para entender la estructura del proyecto, aunque no vaya a compilarlos todos)
-COPY pom.xml .
-COPY api-gateway/pom.xml api-gateway/pom.xml
-COPY auth-service/pom.xml auth-service/pom.xml
-COPY user-service/pom.xml user-service/pom.xml
-COPY case-service/pom.xml case-service/pom.xml
-COPY document-service/pom.xml document-service/pom.xml
-COPY notification-service/pom.xml notification-service/pom.xml
+COPY pom.xml ./pom.xml
+COPY user-service/pom.xml ./user-service/pom.xml
+RUN mvn dependency:go-offline -B -f ./user-service/pom.xml
 
-# Descarga de dependencias en cache (acelera builds futuros)
-RUN mvn -pl auth-service -am dependency:go-offline -B
+COPY user-service/src ./user-service/src
+RUN mvn clean package -Dmaven.test.skip=true -f ./user-service/pom.xml
 
-# Ahora sí copiamos el código fuente real de auth-service
-COPY auth-service/src auth-service/src
-
-# Compilamos SOLO el módulo auth-service (-pl) y lo que necesite (-am)
-RUN mvn -pl auth-service -am clean package -DskipTests -B
-
-# ---------- Etapa 2: runtime ----------
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-COPY --from=build /app/auth-service/target/*.jar app.jar
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
 
-ENV PORT=8080
-EXPOSE 8080
+COPY --from=build /app/user-service/target/*.jar app.jar
 
+# Puerto real: 8082 (definido en application.yml)
+EXPOSE 8082
 ENTRYPOINT ["java", "-jar", "app.jar"]
