@@ -46,12 +46,12 @@ steps:
       - '--max-instances=5'
       - '--service-account=lms-auth-sa@$PROJECT_ID.iam.gserviceaccount.com'
       # SPRING_RABBITMQ_URI acepta la URL completa que da CloudAMQP
-      # (amqps://usuario:pass@host/vhost) — Spring Boot la parsea sola, no hace falta
-      # separar host/user/pass en variables distintas.
-      - '--set-secrets=DB_PASSWORD=auth-db-password:latest,JWT_SECRET=auth-jwt-secret:latest,SPRING_RABBITMQ_URI=cloudamqp-url:latest,REDIS_HOST=upstash-redis-host:latest,REDIS_PASSWORD=upstash-redis-password:latest'
-      # SPRING_DATASOURCE_URL sobrescribe por completo la propiedad spring.datasource.url
-      # del application.yml (que trae useSSL=false fijo) — sin tocar código.
-      - '--set-env-vars=SPRING_DATASOURCE_URL=jdbc:mysql://${_CLOUDSQL_PUBLIC_IP}:3306/legal_management_db?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true,DB_USER=root,HIBERNATE_DDL_AUTO=update'
+      # (amqps://usuario:pass@host/vhost) — Spring Boot la parsea sola.
+      # SPRING_DATA_REDIS_URL acepta la URL completa de Upstash con esquema rediss://
+      # (TLS). SPRING_DATA_REDIS_SSL_ENABLED se agrega por si la versión de Spring Boot
+      # no activa TLS automáticamente solo por el esquema de la URL.
+      - '--set-secrets=DB_PASSWORD=auth-db-password:latest,JWT_SECRET=auth-jwt-secret:latest,SPRING_RABBITMQ_URI=cloudamqp-url:latest,SPRING_DATA_REDIS_URL=upstash-redis-url:latest'
+      - '--set-env-vars=SPRING_DATASOURCE_URL=jdbc:mysql://${_CLOUDSQL_PUBLIC_IP}:3306/legal_management_db?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true,DB_USER=root,HIBERNATE_DDL_AUTO=update,SPRING_DATA_REDIS_SSL_ENABLED=true'
       # Sin --allow-unauthenticated mientras pruebas: usa
       # gcloud run services proxy auth-service --region=us-central1 para probar localmente
 
