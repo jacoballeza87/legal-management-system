@@ -30,6 +30,24 @@ public class GatewayConfig {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
+    // URLs de cada servicio. Default = URLs reales de Cloud Run (jacob-504115),
+    // pero sobreescribibles vía env var AUTH_SERVICE_URL, USER_SERVICE_URL, etc.
+    // sin necesidad de tocar este código de nuevo si las URLs cambian.
+    @Value("${AUTH_SERVICE_URL:https://auth-service-308390111901.us-central1.run.app}")
+    private String authServiceUrl;
+
+    @Value("${USER_SERVICE_URL:https://user-service-308390111901.us-central1.run.app}")
+    private String userServiceUrl;
+
+    @Value("${CASE_SERVICE_URL:https://case-service-308390111901.us-central1.run.app}")
+    private String caseServiceUrl;
+
+    @Value("${NOTIFICATION_SERVICE_URL:http://notification-service:8084}")
+    private String notificationServiceUrl;
+
+    @Value("${DOCUMENT_SERVICE_URL:http://document-service:8085}")
+    private String documentServiceUrl;
+
     // ── Key Resolver: limitar por IP del cliente ──────────────────────────────
     @Bean
     @Primary
@@ -85,7 +103,7 @@ public class GatewayConfig {
                             org.springframework.http.HttpStatus.GATEWAY_TIMEOUT)
                         .setBackoff(Duration.ofMillis(100), Duration.ofMillis(500), 2, true))
                 )
-                .uri("http://auth-service:8081")
+                .uri(authServiceUrl)
             )
 
             // ── USER SERVICE ─────────────────────────────────────────────────
@@ -101,7 +119,7 @@ public class GatewayConfig {
                         .setName("user-cb")
                         .setFallbackUri("forward:/fallback/user"))
                 )
-                .uri("http://user-service:8082")
+                .uri(userServiceUrl)
             )
 
             // ── CASE SERVICE ─────────────────────────────────────────────────
@@ -122,7 +140,7 @@ public class GatewayConfig {
                         .setStatuses(org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE))
                 )
                 // ✅ CORREGIDO: http directo en lugar de lb://
-                .uri("http://case-service:8083")
+                .uri(caseServiceUrl)
             )
 
             // ── NOTIFICATION SERVICE ─────────────────────────────────────────
@@ -139,7 +157,7 @@ public class GatewayConfig {
                         .setFallbackUri("forward:/fallback/notification"))
                 )
                 // ✅ CORREGIDO: http directo en lugar de lb://
-                .uri("http://notification-service:8084")
+                .uri(notificationServiceUrl)
             )
 
             // ── DOCUMENT SERVICE ─────────────────────────────────────────────
@@ -156,30 +174,30 @@ public class GatewayConfig {
                         .setFallbackUri("forward:/fallback/document"))
                 )
                 // ✅ CORREGIDO: http directo en lugar de lb://
-                .uri("http://document-service:8085")
+                .uri(documentServiceUrl)
             )
 
             // ── SWAGGER AGGREGATION ──────────────────────────────────────────
             .route("auth-openapi", r -> r
                 .path("/v3/api-docs/auth")
                 .filters(f -> f.rewritePath("/v3/api-docs/auth", "/v3/api-docs"))
-                .uri("http://auth-service:8081"))
+                .uri(authServiceUrl))
             .route("user-openapi", r -> r
                 .path("/v3/api-docs/user")
                 .filters(f -> f.rewritePath("/v3/api-docs/user", "/v3/api-docs"))
-                .uri("http://user-service:8082"))
+                .uri(userServiceUrl))
             .route("case-openapi", r -> r
                 .path("/v3/api-docs/case")
                 .filters(f -> f.rewritePath("/v3/api-docs/case", "/v3/api-docs"))
-                .uri("http://case-service:8083"))
+                .uri(caseServiceUrl))
             .route("notification-openapi", r -> r
                 .path("/v3/api-docs/notification")
                 .filters(f -> f.rewritePath("/v3/api-docs/notification", "/v3/api-docs"))
-                .uri("http://notification-service:8084"))
+                .uri(notificationServiceUrl))
             .route("document-openapi", r -> r
                 .path("/v3/api-docs/document")
                 .filters(f -> f.rewritePath("/v3/api-docs/document", "/v3/api-docs"))
-                .uri("http://document-service:8085"))
+                .uri(documentServiceUrl))
 
             .build();
     }
