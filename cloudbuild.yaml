@@ -1,5 +1,5 @@
 substitutions:
-  _SERVICE_NAME: user-service
+  _SERVICE_NAME: case-service
   _REGION: us-central1
   _REPO: lms-services
   _CLOUDSQL_PUBLIC_IP: "34.41.188.59"
@@ -10,7 +10,7 @@ steps:
     args:
       - 'build'
       - '-f'
-      - 'user-service/Dockerfile'
+      - 'case-service/Dockerfile'
       - '-t'
       - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:$SHORT_SHA'
       - '-t'
@@ -32,15 +32,13 @@ steps:
       - '--image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_REPO}/${_SERVICE_NAME}:$SHORT_SHA'
       - '--region=${_REGION}'
       - '--platform=managed'
-      - '--port=8082'
+      - '--port=8083'
       - '--memory=1Gi'
       - '--cpu=1'
       - '--min-instances=0'
       - '--max-instances=5'
-      - '--service-account=lms-user-sa@$PROJECT_ID.iam.gserviceaccount.com'
-      # user-service NO usa Redis ni RabbitMQ (aunque el pom.xml no los declara,
-      # así que no se pasan esos secretos aquí).
-      - '--set-secrets=DB_PASSWORD=auth-db-password:latest,JWT_SECRET=auth-jwt-secret:latest'
+      - '--service-account=lms-case-sa@$PROJECT_ID.iam.gserviceaccount.com'
+      - '--set-secrets=DB_PASSWORD=auth-db-password:latest,JWT_SECRET=auth-jwt-secret:latest,SPRING_RABBITMQ_URI=cloudamqp-url:latest'
       - '--set-env-vars=SPRING_DATASOURCE_URL=jdbc:mysql://${_CLOUDSQL_PUBLIC_IP}:3306/legal_management_db?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true,DB_USER=root,HIBERNATE_DDL_AUTO=update'
 
 images:
