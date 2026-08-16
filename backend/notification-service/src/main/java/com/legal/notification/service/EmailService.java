@@ -3,30 +3,46 @@ package com.legal.notification.service;
 import com.legal.notification.model.EmailNotification;
 import com.legal.notification.model.Notification;
 import com.legal.notification.repository.EmailNotificationRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import software.amazon.awssdk.services.ses.SesClient;
-import software.amazon.awssdk.services.ses.model.*;
+
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 
+/**
+ * Envío de correo vía SMTP (SendGrid) usando JavaMailSender de Spring.
+ *
+ * Reemplaza la integración anterior con el SDK de AWS SES — la lógica de
+ * negocio (guardar el registro de EmailNotification, plantillas Thymeleaf,
+ * HTML de respaldo) no cambió, solo el mecanismo de envío.
+ *
+ * Los campos messageId/sesRequestId del modelo se mantienen por compatibilidad
+ * con el esquema existente; ahora contienen un ID generado localmente en vez
+ * del ID que devolvía SES.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EmailService {
 
-    private final SesClient sesClient;
+    private final JavaMailSender mailSender;
     private final EmailNotificationRepository emailRepo;
     private final TemplateEngine templateEngine;
 
-    @Value("${aws.ses.from-email}")
+    @Value("${notification.mail.from-email}")
     private String fromEmail;
 
-    @Value("${aws.ses.from-name}")
+    @Value("${notification.mail.from-name}")
     private String fromName;
 
     public EmailNotification sendEmail(Notification notification, String htmlBody, String textBody) {
@@ -41,35 +57,29 @@ public class EmailService {
             .build();
 
         try {
-            SendEmailRequest request = SendEmailRequest.builder()
-                .source(fromName + " <" + fromEmail + ">")
-                .destination(Destination.builder()
-                    .toAddresses(notification.getRecipientEmail())
-                    .build())
-                .message(Message.builder()
-                    .subject(Content.builder()
-                        .data(notification.getSubject())
-                        .charset("UTF-8")
-                        .build())
-                    .body(Body.builder()
-                        .html(Content.builder().data(htmlBody).charset("UTF-8").build())
-                        .text(Content.builder().data(textBody).charset("UTF-8").build())
-                        .build())
-                    .build())
-                .build();
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(fromEmail, fromName);
+            helper.setTo(notification.getRecipientEmail());
+            helper.setSubject(notification.getSubject());
+            // setText(text, html) arma automáticamente un multipart/alternative,
+            // equivalente a Body.html()+Body.text() que usaba el SDK de SES.
+            helper.setText(textBody, htmlBody);
 
-            SendEmailResponse sesResponse = sesClient.sendEmail(request);
-            emailNotif.setMessageId(sesResponse.messageId());
-            emailNotif.setSesRequestId(sesResponse.responseMetadata().requestId());
+            mailSender.send(mimeMessage);
+
+            String generatedId = "smtp-" + UUID.randomUUID();
+            emailNotif.setMessageId(generatedId);
+            emailNotif.setSesRequestId(generatedId);
             emailNotif.setEmailStatus(EmailNotification.EmailStatus.SENT);
             emailNotif.setSentAt(LocalDateTime.now());
-            log.info("Email enviado a {} | MessageId: {}", notification.getRecipientEmail(), sesResponse.messageId());
+            log.info("Email enviado a {} | MessageId: {}", notification.getRecipientEmail(), generatedId);
 
-        } catch (SesException e) {
-            log.error("Error SES enviando a {}: {}", notification.getRecipientEmail(), e.getMessage());
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            log.error("Error enviando email a {}: {}", notification.getRecipientEmail(), e.getMessage());
             emailNotif.setEmailStatus(EmailNotification.EmailStatus.DELIVERY_FAILED);
             emailNotif.setErrorDetails(e.getMessage());
-            throw new RuntimeException("Error SES: " + e.getMessage(), e);
+            throw new RuntimeException("Error enviando email: " + e.getMessage(), e);
         }
 
         return emailRepo.save(emailNotif);
