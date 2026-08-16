@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.*;
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
@@ -28,12 +26,7 @@ public class DocumentService {
 
     private final CaseDocumentRepository documentRepo;
     private final FileValidationService validationService;
-
-    @Value("${document.storage.path:/app/uploads}")
-    private String storagePath;
-
-    @Value("${document.base-url:http://localhost:8085}")
-    private String baseUrl;
+    private final GcsService gcsService;
 
     // ── Upload ─────────────────────────────────────────────────────────────────
 
@@ -49,8 +42,8 @@ public class DocumentService {
         byte[] bytes = file.getBytes();
         String checksum = calculateChecksum(bytes);
 
-        // 4. Save to local storage
-        String localKey = saveToLocalStorage(file, request.getCaseId(), request.getCaseNumber());
+        // 4. Save to Cloud Storage
+        String objectKey = gcsService.uploadFile(file, request.getCaseId(), request.getCaseNumber());
 
         // 5. Version
         int version = request.getPreviousVersionId() != null
@@ -65,8 +58,8 @@ public class DocumentService {
             .originalFileName(file.getOriginalFilename())
             .mimeType(mimeType)
             .fileSize(file.getSize())
-            .s3Key(localKey)               // reusing s3Key field to store local path
-            .s3BucketName("local-storage") // placeholder
+            .s3Key(objectKey)                       // reusing s3Key field to store GCS object key
+            .s3BucketName(gcsService.getBucketName())
             .googleDriveFileId(null)
             .googleDriveFolderId(null)
             .description(request.getDescription())
@@ -108,16 +101,10 @@ public class DocumentService {
         CaseDocument doc = documentRepo.findById(documentId)
             .orElseThrow(() -> new RuntimeException("Document not found: " + documentId));
 
-        // Soft delete local file
         try {
-            Path filePath = Paths.get(storagePath, doc.getS3Key());
-            if (Files.exists(filePath)) {
-                Files.move(filePath,
-                    filePath.resolveSibling("deleted_" + filePath.getFileName()),
-                    StandardCopyOption.REPLACE_EXISTING);
-            }
+            gcsService.softDeleteFile(doc.getS3Key());
         } catch (Exception e) {
-            log.warn("Could not move file to deleted state: {}", e.getMessage());
+            log.warn("Could not soft-delete file in Cloud Storage: {}", e.getMessage());
         }
 
         doc.setStatus(DocumentStatus.DELETED);
@@ -142,25 +129,6 @@ public class DocumentService {
         );
     }
 
-    // ── Local Storage ──────────────────────────────────────────────────────────
-
-    private String saveToLocalStorage(MultipartFile file, Long caseId, String caseNumber) throws IOException {
-        String caseFolder = "case_" + caseId + "_" + caseNumber.replaceAll("[^a-zA-Z0-9]", "_");
-        Path directory = Paths.get(storagePath, caseFolder);
-        Files.createDirectories(directory);
-
-        String uniqueFileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-        Path targetPath = directory.resolve(uniqueFileName);
-        Files.write(targetPath, file.getBytes());
-
-        log.info("File saved locally at: {}", targetPath);
-        return caseFolder + "/" + uniqueFileName;
-    }
-
-    private String generateDownloadUrl(String localKey) {
-        return baseUrl + "/api/documents/download/" + localKey;
-    }
-
     // ── Checksum ───────────────────────────────────────────────────────────────
 
     private String calculateChecksum(byte[] bytes) {
@@ -179,7 +147,7 @@ public class DocumentService {
     private DocumentResponse mapToResponse(CaseDocument doc) {
         String downloadUrl = null;
         if (doc.getStatus() == DocumentStatus.ACTIVE && doc.getS3Key() != null) {
-            downloadUrl = generateDownloadUrl(doc.getS3Key());
+            downloadUrl = gcsService.generatePresignedDownloadUrl(doc.getS3Key());
         }
 
         return DocumentResponse.builder()
