@@ -10,7 +10,7 @@ spring:
   application:
     name: document-service
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=true&requireSSL=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -50,3 +50,12 @@ management:
     web:
       exposure:
         include: health, info, metrics
+gcp:
+  project-id: jacob-504115
+  storage:
+    enabled: true
+    bucket-name: lms-legal-documents
+    signed-url-expiration-minutes: 60
+
+aws:
+  enabled: false
