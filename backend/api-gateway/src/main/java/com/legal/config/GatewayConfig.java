@@ -93,7 +93,6 @@ public class GatewayConfig {
             .route("auth-service", r -> r
                 .path("/api/v1/auth/**")
                 .filters(f -> f
-                    .stripPrefix(2)
                     .addRequestHeader("X-Gateway-Source", "legal-gateway")
                     .requestRateLimiter(c -> c
                         .setRateLimiter(defaultRateLimiter)
