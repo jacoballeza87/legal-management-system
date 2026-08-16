@@ -23,6 +23,13 @@ import java.time.Duration;
  *   case-service        → 8083
  *   notification-service→ 8084
  *   document-service    → 8085
+ *
+ * NOTA sobre stripPrefix: los controladores de auth-service, user-service
+ * y case-service están mapeados con @RequestMapping("/api/v1/...") — la
+ * ruta completa, no solo el sufijo. Por eso esas tres rutas NO usan
+ * stripPrefix(2): el gateway reenvía el path tal cual. notification-service
+ * y document-service sí lo mantienen por ahora; confirmar su
+ * @RequestMapping real antes de desplegarlos.
  */
 @Configuration
 public class GatewayConfig {
@@ -90,6 +97,7 @@ public class GatewayConfig {
         return builder.routes()
 
             // ── AUTH SERVICE ─────────────────────────────────────────────────
+            // Sin stripPrefix: AuthController está mapeado en /api/v1/auth
             .route("auth-service", r -> r
                 .path("/api/v1/auth/**")
                 .filters(f -> f
@@ -111,10 +119,10 @@ public class GatewayConfig {
             )
 
             // ── USER SERVICE ─────────────────────────────────────────────────
+            // Sin stripPrefix: UserController está mapeado en /api/v1/users
             .route("user-service", r -> r
                 .path("/api/v1/users/**")
                 .filters(f -> f
-                    .stripPrefix(2)
                     .addRequestHeader("X-Gateway-Source", "legal-gateway")
                     .requestRateLimiter(c -> c
                         .setRateLimiter(defaultRateLimiter)
@@ -127,10 +135,10 @@ public class GatewayConfig {
             )
 
             // ── CASE SERVICE ─────────────────────────────────────────────────
+            // Sin stripPrefix: CaseController está mapeado en /api/v1/cases
             .route("case-service", r -> r
                 .path("/api/v1/cases/**")
                 .filters(f -> f
-                    .stripPrefix(2)
                     .addRequestHeader("X-Gateway-Source", "legal-gateway")
                     .requestRateLimiter(c -> c
                         .setRateLimiter(defaultRateLimiter)
