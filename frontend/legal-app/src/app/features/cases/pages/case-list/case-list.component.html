@@ -1,0 +1,251 @@
+<!-- Case List Page with Dashboard Design -->
+<div class="cases-page">
+
+  <!-- ══════════════════════════════════════════════
+       KPI CARDS SECTION
+  ══════════════════════════════════════════════ -->
+  <section class="kpi-grid" *ngIf="stats$ | async as stats">
+    
+    <div class="kpi-card kpi-total">
+      <div class="kpi-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.1"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ stats.totalCases }}</div>
+        <div class="kpi-label">Total de Casos</div>
+      </div>
+      <div class="kpi-trend up">⚖️ Expedientes</div>
+    </div>
+
+    <div class="kpi-card kpi-open">
+      <div class="kpi-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value">{{ stats.openCases }}</div>
+        <div class="kpi-label">Casos Abiertos</div>
+      </div>
+      <div class="kpi-trend neutral">En progreso</div>
+    </div>
+
+    <div class="kpi-card kpi-overdue">
+      <div class="kpi-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126z"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value kpi-danger">{{ stats.urgentCases }}</div>
+        <div class="kpi-label">Urgentes</div>
+      </div>
+      <div class="kpi-trend down" *ngIf="stats.urgentCases > 0">⚠️ Atención!</div>
+      <div class="kpi-trend up" *ngIf="stats.urgentCases === 0">Al día ✓</div>
+    </div>
+
+    <div class="kpi-card kpi-soon">
+      <div class="kpi-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25"/>
+        </svg>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-value kpi-warning">{{ stats.closedCases }}</div>
+        <div class="kpi-label">Cerrados</div>
+      </div>
+      <div class="kpi-trend up">Completados ✓</div>
+    </div>
+
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       PAGE HEADER
+  ══════════════════════════════════════════════ -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Casos</h1>
+      <p class="page-subtitle">{{ (totalElements$ | async) || 0 }} expedientes en el sistema</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline" (click)="exportPdf()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m16.5 0H21"/>
+        </svg>
+        Exportar
+      </button>
+      <button class="btn btn-gold" routerLink="/cases/new">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" d="M12 4.5v15m7.5-7.5h-15"/>
+        </svg>
+        Nuevo Caso
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       FILTERS BAR
+  ══════════════════════════════════════════════ -->
+  <div class="filters-bar">
+    <div class="topbar-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path stroke-linecap="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+      </svg>
+      <input [formControl]="searchCtrl" type="text" placeholder="Buscar por número, título, cliente..." class="search-input"/>
+    </div>
+
+    <select (change)="setFilter('status', $any($event.target).value)" class="filter-select">
+      <option value="">Todos los estados</option>
+      <option *ngFor="let s of statuses" [value]="s">{{ s }}</option>
+    </select>
+
+    <select (change)="setFilter('priority', $any($event.target).value)" class="filter-select">
+      <option value="">Toda prioridad</option>
+      <option *ngFor="let p of priorities" [value]="p">{{ p }}</option>
+    </select>
+
+    <select (change)="setFilter('caseType', $any($event.target).value)" class="filter-select">
+      <option value="">Todos los tipos</option>
+      <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+    </select>
+
+    <!-- View toggle -->
+    <div class="view-toggle">
+      <button [class.active]="(viewMode$ | async) === 'list'" (click)="setViewMode('list')" 
+              title="Lista" class="toggle-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+        </svg>
+      </button>
+      <button [class.active]="(viewMode$ | async) === 'kanban'" (click)="setViewMode('kanban')" 
+              title="Kanban" class="toggle-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M4 6a2 2 0 012-2h4a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h4a2 2 0 012 2v12a2 2 0 01-2 2h-4a2 2 0 01-2-2V6z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       ERROR STATE
+  ══════════════════════════════════════════════ -->
+  <div class="alert-error-bar" *ngIf="error$ | async as err">
+    ⚠️ {{ err }}
+    <button class="link-btn" (click)="reload()">Reintentar</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TABLE VIEW
+  ══════════════════════════════════════════════ -->
+  <div class="card" *ngIf="(viewMode$ | async) === 'list'">
+    <div class="loading-bar" *ngIf="loading$ | async"></div>
+
+    <div class="table-wrap">
+      <table class="cases-table">
+        <thead>
+          <tr>
+            <th (click)="sort('caseNumber')" class="sortable">
+              <span>N° Caso</span>
+              <span class="sort-icon">↕</span>
+            </th>
+            <th (click)="sort('title')" class="sortable">
+              <span>Título / Cliente</span>
+              <span class="sort-icon">↕</span>
+            </th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th (click)="sort('priority')" class="sortable">
+              <span>Prioridad</span>
+              <span class="sort-icon">↕</span>
+            </th>
+            <th>Abogado</th>
+            <th (click)="sort('dueDate')" class="sortable">
+              <span>Vencimiento</span>
+              <span class="sort-icon">↕</span>
+            </th>
+            <th>Versión</th>
+            <th class="actions-header"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of cases$ | async; trackBy: trackById"
+              (click)="goToDetail(c.id)"
+              class="case-row"
+              [class.overdue]="isOverdue(c.dueDate)">
+            <td class="case-number">
+              <span class="pill-mono">{{ c.caseNumber }}</span>
+            </td>
+            <td class="case-title-cell">
+              <div class="case-title">{{ c.title }}</div>
+              <div class="case-client">{{ c.clientName }}</div>
+            </td>
+            <td>
+              <span class="status-pill" [style.background]="'#3b82f6' + '22'" 
+                    [style.color]="'#3b82f6'" [style.border]="'1px solid #3b82f644'">
+                {{ c.caseType }}
+              </span>
+            </td>
+            <td>
+              <span class="status-pill" [style.background]="getStatusColor(c.status) + '22'" 
+                    [style.color]="getStatusColor(c.status)" 
+                    [style.border]="'1px solid ' + getStatusColor(c.status) + '44'">
+                <span class="dot"></span>
+                {{ getStatusLabel(c.status) }}
+              </span>
+            </td>
+            <td>
+              <span class="priority-badge" [style.color]="getPriorityColor(c.priority)">
+                {{ getPriorityLabel(c.priority) }}
+              </span>
+            </td>
+            <td class="lawyer-cell">{{ c.assignedLawyerName || '—' }}</td>
+            <td [class.overdue]="isOverdue(c.dueDate)" [class.near-due]="isNearDue(c.dueDate)">
+              {{ c.dueDate | date:'d MMM':'':'es' }}
+            </td>
+            <td>
+              <span class="tag">v{{ c.currentVersion }}</span>
+            </td>
+            <td class="actions-cell" (click)="$event.stopPropagation()">
+              <button class="icon-btn" (click)="goToDetail(c.id)" title="Ver detalle">👁️</button>
+              <button class="icon-btn" (click)="editCase(c.id)" title="Editar">✏️</button>
+              <button class="icon-btn danger" *ngIf="canDelete()" 
+                      (click)="deleteCase(c.id, c.caseNumber)" title="Eliminar">🗑</button>
+            </td>
+          </tr>
+
+          <!-- Empty state -->
+          <tr *ngIf="(cases$ | async)?.length === 0 && !(loading$ | async)">
+            <td colspan="9" class="empty-state">
+              <div class="empty-icon">⚖️</div>
+              <div>No se encontraron casos</div>
+              <button class="btn btn-outline btn-sm" (click)="resetFilters()">Limpiar filtros</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <span class="page-info">
+        Mostrando {{ currentPageStart }} - {{ currentPageEnd }}
+        de {{ (totalElements$ | async) || 0 }} casos
+      </span>
+      <div class="page-btns">
+        <button class="page-btn" [disabled]="currentPage === 0"
+                (click)="goToPage(currentPage - 1)">‹</button>
+        <button *ngFor="let p of pageNumbers"
+                class="page-btn" [class.current]="p === currentPage"
+                (click)="goToPage(p)">{{ p + 1 }}</button>
+        <button class="page-btn" [disabled]="currentPage >= (totalPages$ | async)! - 1"
+                (click)="goToPage(currentPage + 1)">›</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kanban view -->
+  <app-case-kanban *ngIf="(viewMode$ | async) === 'kanban'"></app-case-kanban>
+
+</div>
