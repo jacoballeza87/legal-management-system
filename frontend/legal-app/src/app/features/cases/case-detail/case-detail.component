@@ -1,563 +1,305 @@
-/* ══════════════════════════════════════════════════════
-   CASE DETAIL — usa los tokens globales de auth.scss
-   (--surface-*, --gold-*, --navy-*, --text-*, --font-*)
-══════════════════════════════════════════════════════ */
-
-.detail-page {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  animation: fadeIn .3s var(--ease-out);
-}
-
-.back-btn {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  font-size: .875rem;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 1.25rem;
-  transition: color .2s;
-
-  &:hover { color: var(--text-gold); }
-}
-
-/* ── Header ───────────────────────────────────────── */
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
-  gap: 1rem;
-  flex-wrap: wrap;
-
-  h1 {
-    font-family: var(--font-display);
-    font-size: 1.9rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 4px 0 10px;
-  }
-}
-
-.case-num-label {
-  font-family: var(--font-mono);
-  font-size: .78rem;
-  color: var(--text-gold);
-  letter-spacing: .05em;
-}
-
-.header-pills {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.icon-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: var(--surface-3);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1rem;
-  transition: all .2s;
-
-  &:hover { background: var(--surface-4); color: var(--text-primary); }
-}
-
-/* ── Pills / Tags (mismo lenguaje visual que case-list) ── */
-.pill {
-  font-size: .68rem;
-  font-weight: 500;
-  padding: 4px 10px;
-  border-radius: 20px;
-  white-space: nowrap;
-  letter-spacing: .03em;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: var(--surface-3);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-
-  .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-  }
-
-  &.status-open        { color: #3b82f6; border-color: rgba(59,130,246,.3); background: rgba(59,130,246,.1); }
-  &.status-in-progress  { color: var(--gold-400); border-color: var(--border-default); background: rgba(212,175,55,.1); }
-  &.status-pending-review { color: #a855f7; border-color: rgba(168,85,247,.3); background: rgba(168,85,247,.1); }
-  &.status-on-hold      { color: #94a3b8; border-color: rgba(148,163,184,.3); background: rgba(148,163,184,.1); }
-  &.status-closed       { color: var(--success); border-color: rgba(34,197,94,.3); background: rgba(34,197,94,.1); }
-  &.status-cancelled    { color: var(--error); border-color: rgba(239,68,68,.3); background: rgba(239,68,68,.1); }
-
-  &.priority-low      { color: var(--success); }
-  &.priority-medium   { color: #3b82f6; }
-  &.priority-high     { color: var(--warning); }
-  &.priority-urgent   { color: #f97316; }
-  &.priority-critical { color: var(--error); }
-
-  &.type-civil, &.type-penal, &.type-laboral,
-  &.type-mercantil, &.type-familiar, &.type-administrativo {
-    text-transform: capitalize;
-  }
-}
-
-.tag {
-  display: inline-block;
-  background: var(--surface-3);
-  color: var(--text-secondary);
-  font-size: .68rem;
-  font-weight: 500;
-  padding: 2px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-/* ── Layout de dos columnas ───────────────────────── */
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 340px;
-  gap: 1.5rem;
-
-  @media (max-width: 960px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.detail-main, .detail-side {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-
-/* ── Card genérico ────────────────────────────────── */
-.card {
-  background: var(--surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem;
-  animation: slideUp .4s var(--ease-out) .05s both;
-}
-
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.card-title {
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.meta-date {
-  font-size: .78rem;
-  color: var(--text-muted);
-}
-
-/* ── Info grid ────────────────────────────────────── */
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem 1.5rem;
-  margin-bottom: 1rem;
-
-  @media (max-width: 560px) { grid-template-columns: 1fr; }
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  label {
-    font-size: .68rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-  }
-
-  span {
-    font-size: .9rem;
-    color: var(--text-primary);
-
-    &.overdue { color: var(--error); font-weight: 600; }
-    &.near-due { color: var(--warning); font-weight: 600; }
-  }
-}
-
-.description-block {
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-subtle);
-
-  label {
-    font-size: .68rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    display: block;
-    margin-bottom: 6px;
-  }
-
-  p {
-    font-size: .875rem;
-    line-height: 1.6;
-    color: var(--text-secondary);
-  }
-}
-
-/* ── Timeline de versiones ────────────────────────── */
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.tl-item {
-  display: flex;
-  gap: 12px;
-  padding-bottom: 1.25rem;
-  position: relative;
-
-  &:not(:last-child)::before {
-    content: '';
-    position: absolute;
-    left: 13px;
-    top: 28px;
-    bottom: 0;
-    width: 1px;
-    background: var(--border-subtle);
-  }
-}
-
-.tl-dot {
-  width: 28px; height: 28px;
-  border-radius: 50%;
-  background: var(--surface-3);
-  border: 1px solid var(--border-default);
-  display: flex; align-items: center; justify-content: center;
-  font-size: .8rem;
-  flex-shrink: 0;
-  color: var(--text-secondary);
-
-  &.approved { color: var(--success); border-color: rgba(34,197,94,.4); }
-  &.review   { color: var(--gold-400); border-color: var(--border-default); }
-}
-
-.tl-content { flex: 1; min-width: 0; }
-
-.tl-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 4px;
-}
-
-.tl-version {
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: .875rem;
-}
-
-.tl-date {
-  font-size: .72rem;
-  color: var(--text-muted);
-  margin-left: auto;
-}
-
-.tl-author {
-  font-size: .8rem;
-  color: var(--text-secondary);
-  margin-bottom: 2px;
-}
-
-.tl-changes {
-  font-size: .85rem;
-  color: var(--text-primary);
-  line-height: 1.5;
-}
-
-.tl-comment {
-  font-size: .8rem;
-  color: var(--text-muted);
-  font-style: italic;
-  margin-top: 4px;
-}
-
-/* ── Relaciones ───────────────────────────────────── */
-.relations-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.relation-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
-  background: var(--surface-3);
-  cursor: pointer;
-  transition: background .2s;
-
-  &:hover { background: var(--surface-4); }
-}
-
-.rel-num {
-  font-family: var(--font-mono);
-  font-size: .75rem;
-  color: var(--text-gold);
-  flex-shrink: 0;
-}
-
-.rel-title {
-  flex: 1;
-  font-size: .85rem;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ── QR card ──────────────────────────────────────── */
-.qr-card { text-align: center; }
-
-.qr-wrap {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 10px;
-}
-
-.qr-image {
-  width: 160px; height: 160px;
-  border-radius: var(--radius-md);
-  background: white;
-  padding: 8px;
-}
-
-.qr-placeholder {
-  width: 160px; height: 160px;
-  border-radius: var(--radius-md);
-  background: var(--surface-3);
-  border: 1px dashed var(--border-default);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-muted);
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.qr-hint {
-  font-size: .78rem;
-  color: var(--text-muted);
-  margin-bottom: 12px;
-}
-
-.qr-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-
-/* ── Colaboradores ────────────────────────────────── */
-.collab-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.collab-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.collab-avatar {
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--gold-500), var(--gold-300));
-  color: var(--navy-950);
-  display: flex; align-items: center; justify-content: center;
-  font-size: .78rem;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.collab-name {
-  font-size: .85rem;
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.collab-role {
-  font-size: .72rem;
-  color: var(--text-muted);
-}
-
-/* ── Estados vacíos / error / carga ───────────────── */
-.empty-state {
-  text-align: center;
-  padding: 1.5rem;
-  color: var(--text-muted);
-  font-size: .85rem;
-}
-
-.error-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  padding: 4rem 2rem;
-  color: var(--text-secondary);
-  text-align: center;
-
-  .error-icon { font-size: 2.5rem; }
-}
-
-.loading-state {
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.skeleton-header, .skeleton-body {
-  background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--radius-md);
-}
-
-.skeleton-header { height: 60px; }
-.skeleton-body { height: 300px; }
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-
-/* ── Modal nueva versión ──────────────────────────── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(4, 13, 26, .7);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s;
-  z-index: 100;
-
-  &.open {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
-.modal {
-  background: var(--surface-1);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  width: 100%;
-  max-width: 480px;
-  padding: 1.5rem;
-  margin: 1rem;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.25rem;
-}
-
-.modal-title {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.modal-close {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  cursor: pointer;
-
-  &:hover { color: var(--text-primary); }
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 1.25rem;
-}
-
-/* ── Formulario dentro del modal ──────────────────── */
-.form-group {
-  margin-bottom: 1rem;
-
-  label {
-    display: block;
-    font-size: .78rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: 6px;
+// src/app/features/cases/case-detail/case-detail.component.ts
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Store } from '@ngrx/store';
+import { Subject } from 'rxjs';
+import { takeUntil, filter } from 'rxjs/operators';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { CasesActions } from '../../../../store/cases/actions/cases.actions';
+import {
+  selectSelectedCase, selectLoadingDetail, selectError,
+  selectVersionsByCaseId
+} from '../../../../store/cases/selectors/cases.selectors';
+import { CreateVersionRequest } from '../../../../core/models/case.model';
+
+@Component({
+  selector: 'app-case-detail',
+  styleUrls: ['./case-detail.component.scss'],
+  template: `
+    <div class="detail-page" *ngIf="!(loadingDetail$ | async); else loader">
+
+      <button class="back-btn" routerLink="/cases">← Volver a casos</button>
+
+      <ng-container *ngIf="case$ | async as c">
+
+        <!-- Header -->
+        <div class="page-header">
+          <div>
+            <div class="case-num-label">{{ c.caseNumber }}</div>
+            <h1>{{ c.title }}</h1>
+            <div class="header-pills">
+              <span class="pill status-{{ c.status | lowercase | replace:'_':'-' }}">
+                <span class="dot"></span>{{ c.status }}
+              </span>
+              <span class="pill priority-{{ c.priority | lowercase }}">
+                🔺 {{ c.priority }}
+              </span>
+              <span class="pill type-{{ c.caseType | lowercase }}">{{ c.caseType }}</span>
+              <span class="tag">📎 Documentos</span>
+              <span class="tag">👥 {{ c.collaborators?.length || 0 }} colaboradores</span>
+            </div>
+          </div>
+          <div class="header-actions">
+            <button class="icon-btn" title="Compartir">🔗</button>
+            <button class="icon-btn" title="Exportar PDF" (click)="exportPdf(c.id)">🖨️</button>
+            <button class="btn btn-outline" (click)="showVersionModal = true">+ Nueva versión</button>
+            <button class="btn btn-gold" [routerLink]="['/cases', c.id, 'edit']">✏️ Editar</button>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+
+          <!-- MAIN COLUMN -->
+          <div class="detail-main">
+
+            <!-- Info general -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">📋 Información del Caso</div>
+                <span class="meta-date">Creado: {{ c.createdAt | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-grid">
+                <div class="info-item"><label>Cliente</label><span>{{ c.clientName }}</span></div>
+                <div class="info-item"><label>Abogado Principal</label><span>{{ c.assignedLawyerName }}</span></div>
+                <div class="info-item"><label>Juzgado</label><span>{{ c.courtName || '—' }}</span></div>
+                <div class="info-item"><label>Fecha apertura</label><span>{{ c.createdAt | date:'dd/MM/yyyy' }}</span></div>
+                <div class="info-item">
+                  <label>Vencimiento</label>
+                  <span [class.overdue]="isOverdue(c.dueDate)" [class.near-due]="isNearDue(c.dueDate)">
+                    {{ c.dueDate ? (c.dueDate | date:'dd/MM/yyyy') : '—' }}
+                  </span>
+                </div>
+                <div class="info-item"><label>Expediente externo</label><span>{{ c.externalExpedientNumber || '—' }}</span></div>
+              </div>
+              <div class="description-block">
+                <label>Descripción</label>
+                <p>{{ c.description }}</p>
+              </div>
+            </div>
+
+            <!-- Versiones -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">🕐 Historial de Versiones</div>
+                <button class="btn btn-outline btn-sm" (click)="showVersionModal = true">+ Nueva versión</button>
+              </div>
+              <div class="timeline">
+                <div *ngFor="let v of versions$ | async; trackBy: trackById" class="tl-item">
+                  <div class="tl-dot" [ngClass]="v.status | lowercase">
+                    {{ v.status === 'APPROVED' ? '✓' : v.status === 'REVIEW' ? '⟳' : '○' }}
+                  </div>
+                  <div class="tl-content">
+                    <div class="tl-header">
+                      <span class="tl-version">Versión {{ v.versionNumber }}</span>
+                      <span class="pill" [ngClass]="'status-' + (v.status | lowercase)">{{ v.status }}</span>
+                      <span class="tl-date">{{ v.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="tl-author">👤 {{ v.createdByName }}</div>
+                    <div class="tl-changes">{{ v.changes }}</div>
+                    <div class="tl-comment" *ngIf="v.lawyerComment">
+                      💬 "{{ v.lawyerComment }}"
+                    </div>
+                  </div>
+                </div>
+                <div class="empty-state" *ngIf="(versions$ | async)?.length === 0">
+                  No hay versiones registradas aún
+                </div>
+              </div>
+            </div>
+
+            <!-- Relaciones -->
+            <div class="card" *ngIf="c.relations?.length">
+              <div class="card-header">
+                <div class="card-title">🔗 Casos Relacionados</div>
+              </div>
+              <div class="relations-list">
+                <div *ngFor="let r of c.relations" class="relation-item"
+                     [routerLink]="['/cases', r.targetCaseId]">
+                  <span class="rel-num">{{ r.targetCaseNumber }}</span>
+                  <span class="rel-title">{{ r.targetCaseTitle }}</span>
+                  <span class="rel-type tag">{{ r.relationType }}</span>
+                  <span class="pill status-{{ r.targetCaseStatus?.toLowerCase() | replace:'_':'-' }}">
+                    {{ r.targetCaseStatus }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SIDEBAR -->
+          <div class="detail-side">
+
+            <!-- QR Code -->
+            <div class="card qr-card">
+              <div class="card-title" style="text-align:center;margin-bottom:14px">📱 QR del Caso</div>
+              <div class="qr-wrap">
+                <img *ngIf="c.qrCodeBase64" [src]="'data:image/png;base64,' + c.qrCodeBase64"
+                     alt="QR Code" class="qr-image" />
+                <div *ngIf="!c.qrCodeBase64" class="qr-placeholder">
+                  <span>QR</span>
+                </div>
+              </div>
+              <p class="qr-hint">Escanea para acceso rápido</p>
+              <div class="qr-actions">
+                <button class="btn btn-outline btn-sm" (click)="downloadQr(c)">⬇ Descargar</button>
+                <button class="btn btn-outline btn-sm">🖨 Imprimir</button>
+              </div>
+            </div>
+
+            <!-- Colaboradores -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">👥 Colaboradores</div>
+              </div>
+              <div class="collab-list">
+                <div *ngFor="let col of c.collaborators" class="collab-item">
+                  <div class="collab-avatar">{{ getInitials(col.userName) }}</div>
+                  <div class="collab-info">
+                    <div class="collab-name">{{ col.userName }}</div>
+                    <div class="collab-role">{{ col.userRole }} · {{ col.collaboratorRole }}</div>
+                  </div>
+                </div>
+                <div class="empty-state" *ngIf="!c.collaborators?.length">
+                  Sin colaboradores asignados
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </ng-container>
+
+      <!-- Error state -->
+      <div class="error-state" *ngIf="error$ | async as error">
+        <div class="error-icon">⚠️</div>
+        <p>{{ error }}</p>
+        <button class="btn btn-outline" routerLink="/cases">Volver a la lista</button>
+      </div>
+
+    </div>
+
+    <!-- Loading skeleton -->
+    <ng-template #loader>
+      <div class="loading-state">
+        <div class="skeleton-header"></div>
+        <div class="skeleton-body"></div>
+      </div>
+    </ng-template>
+
+    <!-- MODAL nueva versión -->
+    <div class="modal-overlay" [class.open]="showVersionModal" (click)="closeVersionModal($event)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title">Nueva Versión</div>
+          <button class="modal-close" (click)="showVersionModal = false">✕</button>
+        </div>
+        <form [formGroup]="versionForm" (ngSubmit)="submitVersion()">
+          <div class="form-group">
+            <label>Estado</label>
+            <select formControlName="status">
+              <option value="DRAFT">BORRADOR</option>
+              <option value="REVIEW">EN REVISIÓN</option>
+              <option value="APPROVED">APROBADA</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Cambios en esta versión *</label>
+            <textarea formControlName="changes" placeholder="Describe qué cambió..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Comentario (opcional)</label>
+            <textarea formControlName="lawyerComment" placeholder="Observaciones..."></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" (click)="showVersionModal = false">Cancelar</button>
+            <button type="submit" class="btn btn-gold"
+                    [disabled]="versionForm.invalid">Guardar Versión</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `
+})
+export class CaseDetailComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private caseId!: number;
+
+  case$          = this.store.select(selectSelectedCase);
+  loadingDetail$ = this.store.select(selectLoadingDetail);
+  error$         = this.store.select(selectError);
+  versions$      = this.store.select(selectVersionsByCaseId(0)); // se actualiza en ngOnInit
+
+  showVersionModal = false;
+
+  versionForm = new FormGroup({
+    status:         new FormControl('DRAFT', [Validators.required]),
+    changes:        new FormControl('',      [Validators.required, Validators.minLength(10)]),
+    lawyerComment:  new FormControl('')
+  });
+
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router,
+    private store: Store
+  ) {}
+
+  ngOnInit(): void {
+    this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
+      this.caseId = +params['id'];
+      this.store.dispatch(CasesActions.loadCase({ id: this.caseId }));
+      this.store.dispatch(CasesActions.loadVersions({ caseId: this.caseId }));
+      this.versions$ = this.store.select(selectVersionsByCaseId(this.caseId));
+    });
   }
 
-  select, textarea, input {
-    width: 100%;
-    background: var(--surface-2);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-md);
-    padding: 10px 12px;
-    color: var(--text-primary);
-    font-family: var(--font-body);
-    font-size: .875rem;
-    transition: border-color .2s;
+  ngOnDestroy(): void { this.destroy$.next(); this.destroy$.complete(); }
 
-    &:focus { border-color: var(--gold-500); outline: none; }
+  submitVersion(): void {
+    if (this.versionForm.invalid) return;
+    const request: CreateVersionRequest = {
+      status:        this.versionForm.value.status as any,
+      changes:       this.versionForm.value.changes!,
+      lawyerComment: this.versionForm.value.lawyerComment || undefined
+    };
+    this.store.dispatch(CasesActions.createVersion({ caseId: this.caseId, request }));
+    this.showVersionModal = false;
+    this.versionForm.reset({ status: 'DRAFT' });
   }
 
-  textarea { min-height: 80px; resize: vertical; }
-}
+  closeVersionModal(event: MouseEvent): void {
+    if ((event.target as HTMLElement).classList.contains('modal-overlay')) {
+      this.showVersionModal = false;
+    }
+  }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+  exportPdf(id: number): void {
+    console.log('Exportar PDF del caso', id);
+  }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  downloadQr(c: any): void {
+    if (!c.qrCodeBase64) return;
+    const a = document.createElement('a');
+    a.href = 'data:image/png;base64,' + c.qrCodeBase64;
+    a.download = `QR_${c.caseNumber}.png`;
+    a.click();
+  }
+
+  isOverdue(dueDate?: string): boolean {
+    return !!dueDate && new Date(dueDate) < new Date();
+  }
+
+  isNearDue(dueDate?: string): boolean {
+    if (!dueDate) return false;
+    const diff = new Date(dueDate).getTime() - Date.now();
+    return diff > 0 && diff < 7 * 24 * 60 * 60 * 1000;
+  }
+
+  getInitials(name?: string): string {
+    if (!name) return '?';
+    return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  }
+
+  trackById(_: number, item: any): number { return item.id; }
 }
