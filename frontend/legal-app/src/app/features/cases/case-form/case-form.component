@@ -1,0 +1,183 @@
+/* ══════════════════════════════════════════════════════
+   CASE FORM — usa los tokens globales de auth.scss
+══════════════════════════════════════════════════════ */
+
+.form-page {
+  padding: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn .3s var(--ease-out);
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: .875rem;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 1.25rem;
+  transition: color .2s;
+
+  &:hover { color: var(--text-gold); }
+}
+
+.page-header {
+  margin-bottom: 1.5rem;
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+  }
+
+  .subtitle {
+    font-size: .9rem;
+    color: var(--text-secondary);
+  }
+}
+
+.error-banner {
+  background: rgba(239, 68, 68, .1);
+  border: 1px solid rgba(239, 68, 68, .3);
+  color: #fca5a5;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  font-size: .85rem;
+  margin-bottom: 1.25rem;
+}
+
+/* ── Card genérico ────────────────────────────────── */
+.card {
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  animation: slideUp .4s var(--ease-out) .05s both;
+}
+
+.card-header {
+  margin-bottom: 1.1rem;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* ── Grid de formulario ───────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem 1.25rem;
+
+  @media (max-width: 640px) { grid-template-columns: 1fr; }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  &.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  input, select, textarea {
+    background: var(--surface-1);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: .875rem;
+    transition: border-color .2s;
+    width: 100%;
+
+    &::placeholder { color: var(--text-muted); }
+    &:focus { border-color: var(--gold-500); outline: none; }
+  }
+
+  textarea { min-height: 100px; resize: vertical; }
+
+  select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 32px;
+  }
+}
+
+.field-error {
+  font-size: .72rem;
+  color: var(--error);
+}
+
+/* ── Colaboradores ────────────────────────────────── */
+.collaborators-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 1rem;
+}
+
+.collab-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-3);
+  border: 1px solid var(--border-subtle);
+  border-radius: 20px;
+  padding: 6px 10px 6px 14px;
+  font-size: .8rem;
+  color: var(--text-primary);
+
+  .chip-role {
+    font-size: .68rem;
+    color: var(--text-gold);
+    background: rgba(212, 175, 55, .1);
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  button {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: .8rem;
+    padding: 0;
+
+    &:hover { color: var(--error); }
+  }
+}
+
+/* ── Acciones del formulario ──────────────────────── */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 1rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
