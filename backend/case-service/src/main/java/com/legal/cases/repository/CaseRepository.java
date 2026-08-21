@@ -21,6 +21,9 @@ public interface CaseRepository extends JpaRepository<Case, Long>, JpaSpecificat
     Page<Case> findByStatus(Case.CaseStatus status, Pageable pageable);
     Page<Case> findByOwnerIdAndStatus(Long ownerId, Case.CaseStatus status, Pageable pageable);
 
+@Query("SELECT c FROM Case c ORDER BY c.updatedAt DESC")
+List<Case> findRecentActivity(Pageable pageable);
+
     @Query("SELECT c FROM Case c WHERE " +
            "LOWER(c.title) LIKE LOWER(CONCAT('%',:q,'%')) OR " +
            "LOWER(c.caseNumber) LIKE LOWER(CONCAT('%',:q,'%')) OR " +
