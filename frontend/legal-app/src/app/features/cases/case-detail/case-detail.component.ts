@@ -220,7 +220,7 @@ import { CreateVersionRequest } from '../../../../core/models/case.model';
         </form>
       </div>
     </div>
-  `
+  `,styleUrls: ['./case-detail.component.scss']
 })
 export class CaseDetailComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
