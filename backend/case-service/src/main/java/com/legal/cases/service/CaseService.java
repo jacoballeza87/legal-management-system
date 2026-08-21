@@ -47,6 +47,22 @@ public class CaseService {
         return PageResponse.from(page);
     }
 
+@Transactional(readOnly = true)
+public List<ActivityDTO> getRecentActivity(int limit) {
+    Pageable pageable = PageRequest.of(0, limit);
+    return caseRepository.findRecentActivity(pageable).stream()
+            .map(c -> ActivityDTO.builder()
+                    .caseId(c.getId())
+                    .caseNumber(c.getCaseNumber())
+                    .title(c.getTitle())
+                    .status(c.getStatus().name())
+                    .ownerId(c.getOwnerId())
+                    .updatedAt(c.getUpdatedAt())
+                    .build())
+            .collect(Collectors.toList());
+}
+
+
     @Transactional(readOnly = true)
     public PageResponse<CaseDTO> getCasesByOwner(Long ownerId, CaseFilterRequest filter) {
         Pageable pageable = buildPageable(filter);
