@@ -21,7 +21,7 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-
+import io.jsonwebtoken.io.Decoders;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -39,8 +39,9 @@ public class AuthenticationFilter implements WebFilter {
 
     @PostConstruct
     public void init() {
-        this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
-    }
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+    this.key = Keys.hmacShaKeyFor(keyBytes);
+}
 
     private static final Set<String> PUBLIC_PATHS = Set.of(
         "/api/v1/auth/login",
