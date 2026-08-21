@@ -14,7 +14,7 @@ import {
 export class CaseService {
 
   // 🔥 CORRECCIÓN IMPORTANTE
-  private readonly api = `${environment.apiUrl}/api/v1/cases`;
+  private readonly api = `${environment.apiUrl}/cases`;
 
   constructor(private http: HttpClient) {}
 
