@@ -42,6 +42,15 @@ public class CaseController {
         return ResponseEntity.ok(caseService.getCasesByOwner(userId, filter));
     }
 
+@GetMapping("/activity")
+@Operation(summary = "Actividad reciente de casos")
+@PreAuthorize("isAuthenticated()")
+public ResponseEntity<List<ActivityDTO>> getActivity(
+        @RequestParam(defaultValue = "20") int limit) {
+    return ResponseEntity.ok(caseService.getRecentActivity(limit));
+}
+
+
     @GetMapping("/{id}")
     @Operation(summary = "Obtener caso por ID")
     @PreAuthorize("isAuthenticated()")
