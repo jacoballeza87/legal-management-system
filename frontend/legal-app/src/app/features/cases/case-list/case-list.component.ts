@@ -170,7 +170,7 @@ import { CaseStatus, CasePriority, CaseType } from '../../../../core/models/case
       <app-case-kanban *ngIf="(viewMode$ | async) === 'kanban'"></app-case-kanban>
 
     </div>
-  `
+  `, styleUrls: ['./case-list.component.scss']
 })
 export class CaseListComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
