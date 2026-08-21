@@ -3,6 +3,7 @@ package com.legal.config;
 import com.legal.filter.AuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
@@ -16,6 +17,8 @@ import reactor.core.publisher.Mono;
  *
  * Estrategia:
  *  - Stateless (JWT, sin sesión HTTP)
+ *  - Preflight CORS (OPTIONS): siempre permitido, el navegador nunca
+ *    envía token en estas peticiones
  *  - Rutas públicas: /api/v1/auth/** sin restricción
  *  - Todas las demás rutas: requieren JWT válido
  *  - El AuthenticationFilter valida el JWT ANTES de enrutar
@@ -47,6 +50,9 @@ public class SecurityConfig {
 
             // ── Control de acceso ────────────────────────────────────────────
             .authorizeExchange(exchanges -> exchanges
+                // Preflight CORS: el navegador nunca envía token en OPTIONS
+                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                 // Rutas completamente públicas
                 .pathMatchers(
                     "/api/v1/auth/login",
