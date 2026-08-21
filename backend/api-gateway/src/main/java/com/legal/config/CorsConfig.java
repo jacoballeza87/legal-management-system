@@ -6,6 +6,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +30,7 @@ public class CorsConfig {
     private String allowedOriginsRaw;
 
     @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
