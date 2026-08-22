@@ -24,8 +24,7 @@ import java.util.Set;
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Users", description = "Gestión de usuarios")
 public class UserController {
-
-    @Autowired
+    
     private final UserService userService;
 
     // ─── GET ─────────────────────────────────────────────────────────────────────
