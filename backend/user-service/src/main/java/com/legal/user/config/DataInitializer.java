@@ -87,6 +87,11 @@ public class DataInitializer implements CommandLineRunner {
         roleDefs.put("VIEWER", List.of(
                 "cases:read",
                 "documents:read"));
+        roleDefs.put("VIEWER", List.of(
+        "cases:read",
+        "documents:read"));
+// ADDED: rol por defecto para usuarios recién registrados sin roles asignados
+        roleDefs.put("PENDING", List.of());
 
         for (Map.Entry<String, List<String>> entry : roleDefs.entrySet()) {
             if (!roleRepository.existsByName(entry.getKey())) {
