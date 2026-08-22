@@ -36,7 +36,7 @@ import { CaseType, CasePriority, CreateCaseRequest, UpdateCaseRequest } from '..
           <div class="form-grid">
             <div class="form-group full">
               <label>Título del Caso *</label>
-              <input formControlName="title" placeholder="Ej: Demanda laboral por despido injustificado">
+              <input type="text" formControlName="title" placeholder="Ej: Demanda laboral por despido injustificado">
               <span class="field-error" *ngIf="f['title'].touched && f['title'].invalid">
                 El título es requerido
               </span>
@@ -44,7 +44,7 @@ import { CaseType, CasePriority, CreateCaseRequest, UpdateCaseRequest } from '..
 
             <div class="form-group">
               <label>Cliente *</label>
-              <input formControlName="clientName" placeholder="Nombre del cliente o empresa">
+              <input type="tect"  formControlName="clientName" placeholder="Nombre del cliente o empresa">
             </div>
 
             <div class="form-group">
@@ -79,17 +79,17 @@ import { CaseType, CasePriority, CreateCaseRequest, UpdateCaseRequest } from '..
 
             <div class="form-group">
               <label>Juzgado / Tribunal</label>
-              <input formControlName="courtName" placeholder="Ej: Tribunal Civil #3">
+              <input type="text" formControlName="courtName" placeholder="Ej: Tribunal Civil #3">
             </div>
 
             <div class="form-group">
               <label>N° Expediente Externo</label>
-              <input formControlName="externalExpedientNumber" placeholder="Ej: EXT-2024-44521">
+              <input type="text" formControlName="externalExpedientNumber" placeholder="Ej: EXT-2024-44521">
             </div>
 
             <div class="form-group full">
               <label>Descripción del Caso</label>
-              <textarea formControlName="description"
+              <textarea type="text" formControlName="description"
                         placeholder="Descripción detallada de los hechos, antecedentes y objeto del litigio...">
               </textarea>
             </div>
