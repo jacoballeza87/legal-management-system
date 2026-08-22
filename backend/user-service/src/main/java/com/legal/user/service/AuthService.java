@@ -49,7 +49,7 @@ public class AuthService {
         Optional existingUser = userRepository.findByEmail(oauthEmail);
         
         if (existingUser.isPresent()) {
-            return existingUser.get();
+            return (User) existingUser.get();
         }
 
         // RN-S-002 & RN-S-008: New OAuth User
