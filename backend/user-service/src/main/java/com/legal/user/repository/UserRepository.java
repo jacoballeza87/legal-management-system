@@ -48,4 +48,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
     @Modifying
     @Query("UPDATE User u SET u.avatarUrl = :avatarUrl WHERE u.id = :id")
     void updateAvatarUrl(@Param("id") Long id, @Param("avatarUrl") String avatarUrl);
+
+    // ADD THIS NEW METHOD for RN-S-004 (System Admin limit)
+    @Query("SELECT COUNT(u) FROM User u JOIN u.roles r WHERE r.name = :roleName")
+    long countByRoleName(@Param("roleName") String roleName);
+
 }
