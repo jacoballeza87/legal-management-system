@@ -16,7 +16,7 @@ RABBITMQ_HOST="TU_RABBITMQ_HOST"
 RABBITMQ_PORT="TU_RABBITMQ_PORT"
 RABBITMQ_USERNAME="TU_RABBITMQ_USER"
 RABBITMQ_VHOST="TU_RABBITMQ_VHOST"
-FRONTEND_URL="https://frontend-308390111901.us-central1.run.app"
+FRONTEND_URL="https://corpdiosdado.com"
 
 echo "════════════════════════════════════════"
 echo "  1. Actualizando código desde GitHub"
