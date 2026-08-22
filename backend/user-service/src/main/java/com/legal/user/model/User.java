@@ -6,7 +6,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -35,6 +37,24 @@ public class User {
 
     @Column(nullable = false, unique = true, length = 150)
     private String email;
+    
+    // --- ADDED FOR BUSINESS RULES ---
+    @Column(name = "alt_email", length = 150)
+    private String altEmail; // RN-S-002
+
+    @Column(nullable = false)
+    private String password; // Required for auth
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_devices", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "device_id")
+    @Builder.Default
+    private List<String> deviceIds = new ArrayList<>(); // RN-S-003: Limit to 2 for System Admins
+
+    @Column(name = "requires_oauth_setup")
+    @Builder.Default
+    private Boolean requiresOAuthSetup = false; // RN-S-002
+    // --------------------------------
 
     @Column(name = "phone", length = 20)
     private String phone;

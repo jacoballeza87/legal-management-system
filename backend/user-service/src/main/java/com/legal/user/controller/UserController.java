@@ -24,7 +24,7 @@ import java.util.Set;
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Users", description = "Gestión de usuarios")
 public class UserController {
-
+    
     private final UserService userService;
 
     // ─── GET ─────────────────────────────────────────────────────────────────────
@@ -41,11 +41,18 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener usuario por ID")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+    @Operation(summary = "Obtener usuario por ID (admin, o el propio usuario)")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id, HttpServletRequest httpRequest) {
+    Long callerId = (Long) httpRequest.getAttribute("userId");
+    String callerRole = (String) httpRequest.getAttribute("userRole");
+    boolean isAdmin = "SUPER_ADMIN".equals(callerRole) || "ADMIN".equals(callerRole);
+
+    if (!isAdmin && !id.equals(callerId)) {
+        throw new org.springframework.security.access.AccessDeniedException("Acceso denegado");
     }
+    return ResponseEntity.ok(userService.getUserById(id));
+}
 
     @GetMapping("/email/{email}")
     @Operation(summary = "Obtener usuario por email (uso interno / API Gateway)")
