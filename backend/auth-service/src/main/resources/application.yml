@@ -10,7 +10,7 @@ spring:
   application:
     name: auth-service
   datasource:
-    url: jdbc:mysql:///${DB_NAME}?cloudSqlInstance=${CLOUD_SQL_CONNECTION_NAME}&socketFactory=com.google.cloud.sql.mysql.SocketFactory&useSSL=false    
+    url: jdbc:mysql:///${DB_NAME}?cloudSqlInstance=${CLOUD_SQL_CONNECTION_NAME}&socketFactory=com.google.cloud.sql.mysql.SocketFactory&useSSL=false
     username: ${DB_USER}
     password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -40,7 +40,7 @@ spring:
           max-idle: 8
           min-idle: 0
 
- security:
+  security:
     #oauth2:
     #  client:
     #    registration:
