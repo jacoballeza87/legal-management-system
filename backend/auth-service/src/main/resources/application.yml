@@ -83,4 +83,4 @@ springdoc:
 logging:
   level:
     com.legal.auth: DEBUG
-    org.springframework.security: INFO
+    org.springframework.security: INFO 
