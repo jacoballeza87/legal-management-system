@@ -40,20 +40,20 @@ spring:
           max-idle: 8
           min-idle: 0
 
-  security:
-#    oauth2:
-#     client:
-#        registration:
-#          google:
-#            client-id: ${GOOGLE_CLIENT_ID:}
-#            client-secret: ${GOOGLE_CLIENT_SECRET:}
-#            scope: openid, profile, email
-"            redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
-"          github:
-"            client-id: ${GH_CLIENT_ID:}
-"            client-secret: ${GH_CLIENT_SECRET:}
-"            scope: read:user, user:email
-"            redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
+ security:
+    #oauth2:
+    #  client:
+    #    registration:
+    #      google:
+    #        client-id: ${GOOGLE_CLIENT_ID:}
+    #        client-secret: ${GOOGLE_CLIENT_SECRET:}
+    #        scope: openid, profile, email
+    #        redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
+    #      github:
+    #        client-id: ${GH_CLIENT_ID:}
+    #        client-secret: ${GH_CLIENT_SECRET:}
+    #        scope: read:user, user:email
+    #        redirect-uri: "{baseUrl}/api/v1/auth/oauth2/callback/{registrationId}"
 
 jwt:
   secret: ${JWT_SECRET}
