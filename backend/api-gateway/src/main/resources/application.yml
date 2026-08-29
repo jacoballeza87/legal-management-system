@@ -12,11 +12,6 @@ server:
 spring:
   application:
     name: api-gateway
-  datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: ${DB_USER}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -143,8 +138,6 @@ logging:
     io.github.resilience4j: INFO
     com.legal: DEBUG
 
-
-
 ---
 spring:
   config:
@@ -160,3 +153,4 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+EOF
