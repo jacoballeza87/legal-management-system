@@ -59,4 +59,3 @@ logging:
   level:
     com.legal.user: DEBUG
     org.springframework.security: INFO
-EOF
