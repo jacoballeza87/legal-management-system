@@ -22,10 +22,7 @@ spring:
     listener:
       simple:
         missing-queues-fatal: false
-    host: rabbitmq.railway.internal
-    port: 5672
-    username: guest
-    password: guest
+    addresses: ${RABBITMQ_URL}
 
   jpa:
     hibernate:
