@@ -57,7 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             username, null, authorities
                     );
                     
-                    // Opcional: Puedes adjuntar la categoría al details para filtrado posterior en los repositorios
+                    // Inyectar categoría en los atributos de la petición para filtros de negocio
                     request.setAttribute("userCategory", category);
 
                     SecurityContextHolder.getContext().setAuthentication(auth);
