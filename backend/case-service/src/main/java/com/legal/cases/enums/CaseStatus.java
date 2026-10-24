@@ -1,8 +1,0 @@
-package com.legal.cases.enums;
-
-// RN-F-003 & RN-O-005: Estados del Caso
-public enum CaseStatus {
-    NO_CREADO, CREADO, ASIGNADO, ACTUALIZADO, EN_APROBACION, 
-    CERRADO, COMPLETADO, TERMINADO_SIN_EXITO, TERMINADO_CON_EXITO, 
-    REABIERTO, CERTIFICADO
-}
