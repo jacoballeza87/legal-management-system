@@ -26,7 +26,7 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el correo: " + loginRequest.getEmail()));
 
         // RN-S-007: Validar que el usuario no tenga rol PENDING
-        if ("PENDING".equalsIgnoreCase(user.getRole())) {
+        if ("PENDING".equalsIgnoreCase(user.getRole().name()) {
             throw new IllegalStateException("Acceso denegado: Tu cuenta se encuentra en estado PENDING pendiente de aprobación.");
         }
 
