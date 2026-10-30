@@ -39,6 +39,10 @@ public class User {
     @Column(name = "password_hash")
     private String passwordHash;
 
+    // Added category field for JWT generation and Phase 2 segregation
+    @Column(length = 50)
+    private String category;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
@@ -102,11 +106,13 @@ public class User {
         return authProvider != null && authProvider != AuthProvider.LOCAL;
     }
 
+    // Extended with SUPERVISOR, COLLABORATOR, and PENDING for business rules
     public enum Role {
-        SUPER_ADMIN, ADMIN, LAWYER, ACCOUNTANT, USER, VIEWER
+        SUPER_ADMIN, ADMIN, SUPERVISOR, COLLABORATOR, LAWYER, ACCOUNTANT, USER, VIEWER, PENDING
     }
 
+    // Added MICROSOFT for Hotmail/Outlook OAuth integration
     public enum AuthProvider {
-        LOCAL, GOOGLE, GITHUB
+        LOCAL, GOOGLE, GITHUB, MICROSOFT
     }
 }
