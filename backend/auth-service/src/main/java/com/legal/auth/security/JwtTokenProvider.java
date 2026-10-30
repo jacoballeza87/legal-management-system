@@ -55,14 +55,17 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
-    public boolean validateToken(String authToken) {
+        public boolean validateToken(String authToken) {
         try {
-            // FIX: Replaced parserBuilder() with parser()
-            Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(authToken);
+            Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build() // <-- YOU MUST ADD THIS LINE
+                .parseClaimsJws(authToken);
             return true;
         } catch (Exception ex) {
             // Log exception (token expired, malformed, etc.)
         }
         return false;
     }
+
 }
