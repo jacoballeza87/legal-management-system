@@ -21,6 +21,7 @@ public class AuthService {
     private final JwtTokenProvider tokenProvider;
 
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
+        // Buscar usuario para validar reglas de negocio previas (ej. estado PENDING)
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con el correo: " + loginRequest.getEmail()));
 
@@ -38,15 +39,16 @@ public class AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // FIX: Added .name() to convert Enum to String
+        // Generar token inyectando rol y categoría (RN-S-005)
+        // Fixed: Use .name() to safely pass the string representation of the Enum
         String jwt = tokenProvider.generateToken(authentication, user.getRole().name(), user.getCategory());
 
         return JwtResponse.builder()
                 .token(jwt)
                 .id(user.getId())
                 .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(user.getRole()) // Assumes JwtResponse accepts the Enum, if it wants a String use .name()
+                .fullName(user.getName()) // Fixed: Now matches the 'name' field in User.java exactly
+                .role(user.getRole().name()) // Fixed: Ensure it converts to String for the DTO
                 .category(user.getCategory())
                 .build();
     }
