@@ -45,9 +45,10 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public String getUsernameFromJWT(String token) {
-        Claims claims = Jwts.parser()
-                .setSigningKey(jwtSecret) 
+        public String getUsernameFromJWT(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(jwtSecret) // or getSigningKey() depending on your setup
+                .build() // <-- YOU MUST ADD THIS LINE
                 .parseClaimsJws(token)
                 .getBody();
 
